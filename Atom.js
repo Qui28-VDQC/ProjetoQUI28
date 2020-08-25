@@ -14,7 +14,7 @@ class Atom {
         circle(this.pos.x, this.pos.y, 2 * this.radius);
     }
     update(dt) {
-        this.pos.add(this.velocity.mult(dt))
+        this.pos.add(p5.Vector.mult(this.velocity, dt))
         if (this.pos.x > width - this.radius) {
             this.velocity.x *= -1;
             //reflete o que ele ultrapassou
@@ -42,7 +42,7 @@ function check_collision(atom1, atom2) {
     let dpos = p5.Vector.sub(atom1.pos, atom2.pos)
     let deltaV = p5.Vector.sub(a.velocity, b.velocity);
     let beta = -p5.Vector.dot(deltaV, dpos) / deltaV.mag();
-    let deltaT = beta - sqrt(sq(a.radius + b.radius) - sq(mag(dpos)) + sq(beta));
+    let deltaT = beta - sqrt(sq(a.radius + b.radius) - sq(dpos.mag()) + sq(beta));
     deltaT /= deltaV.mag();
     return deltaT
 }
