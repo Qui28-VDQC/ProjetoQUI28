@@ -43,23 +43,27 @@ class Diatomic {
         //tentar com deltaL
         //i é índice do átomo que colidiu com a parede
         //collide com a parede
-        //velocidade inicial do átomo que colidiu
-        let collided_atom_vel = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, p5.Vector.mult(this.n, this.d_CM[i])));
-        //velociade inicial do outro átomo
-        let other_atom_vel = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, p5.Vector.mult(this.n, -this.d_CM[1 - i])));
-        let e = this.atoms[i].m * collided_atom_vel.magSq() / 2 + this.atoms[1 - i].m * other_atom_vel.magSq() / 2;
+        //velocidade inicial do ponto que colidiu
+        //v = vCM + w x (dCM + (centro do átomo até ponto colisão)
+        normal.normalize()
+        let CM_point = p5.Vector.mult(this.n, ((i == 0) ? 1 : -1) * this.d_CM[i]).add(
+            p5.Vector.mult(normal, -this.atoms[i].radius));
+        let collided_point_vel = p5.Vector.add(this.cm_vel,
+            p5.Vector.cross(this.omega, CM_point));
+        let m_tot = this.atoms[0].m + this.atoms[1].m;
+        let inertia = this.atoms[0].m * this.d_CM[0] ** 2 + this.atoms[1].m * this.d_CM[1] ** 2;
+        let e = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
+        let delta_p = normal;
+        //módulo do delta_p
+        let j = -2 * collided_point_vel.dot(normal)
+            / (1 / m_tot + p5.Vector.cross(CM_point, normal).magSq() / inertia);
+        delta_p.mult(j);
+        this.cm_vel.add(p5.Vector.div(delta_p, m_tot));
+        //se for o átomo 0, this.n já tá na direção certa
+        this.omega.add(p5.Vector.div(p5.Vector.cross(
+            p5.Vector.mult(CM_point, delta_p), inertia)));
+        e = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2 - e;
         console.log(e);
-        //reflete a velocidade do átomo que colidiu na direção normal
-        collided_atom_vel.sub(project(collided_atom_vel, normal).mult(2));
-        //faz colisão inelástica entre os átomos
-        other_atom_vel.sub(project(other_atom_vel, this.n)).add(project(collided_atom_vel, this.n).mult(this.atoms[i].m / (this.atoms[i].m + this.atoms[1 - i].m)));
-        collided_atom_vel.sub(project(collided_atom_vel, this.n)).add(project(other_atom_vel, this.n));
-        e = this.atoms[i].m * collided_atom_vel.magSq() / 2 + this.atoms[1 - i].m * other_atom_vel.magSq() / 2 - e;
-        console.log(e);
-        //calcula novo omega e vCM
-        this.cm_vel = p5.Vector.add(collided_atom_vel, other_atom_vel).div(2);
-        //omega = r x (v - vCM)
-        this.omega = p5.Vector.cross(p5.Vector.mult(this.n, 1 / this.d_CM[i]), p5.Vector.sub(collided_atom_vel, this.cm_vel));
     }
     update(dt) {
         this.translate(dt);
@@ -71,7 +75,23 @@ class Diatomic {
         for (i = 0; i < 2; i++) {
             //corrigir "ultrapassagem"
             if (poss[i].x + this.atoms[i].radius > width) {
+                this.cm_pos.sub([poss[i].x + this.atoms[i].radius - width, 0, 0]);
                 normal = createVector(-1, 0);
+                break;
+            }
+            else if (poss[i].x - this.atoms[i].radius < 0) {
+                this.cm_pos.sub([poss[i].x - this.atoms[i].radius, 0, 0]);
+                normal = createVector(1, 0);
+                break;
+            }
+            if (poss[i].y + this.atoms[i].radius > height) {
+                this.cm_pos.sub([0, poss[i].y + this.atoms[i].radius - height, 0]);
+                normal = createVector(0, -1);
+                break;
+            }
+            else if (poss[i].y - this.atoms[i].radius < 0) {
+                this.cm_pos.sub([0, poss[i].y - this.atoms[i].radius, 0]);
+                normal = createVector(0, 1);
                 break;
             }
         }

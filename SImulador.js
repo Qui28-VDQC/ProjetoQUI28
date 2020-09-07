@@ -55,7 +55,7 @@ function setup() {
     let atom1 = a(0, 0);
     let atom2 = b(0, 0);
     console.log(PI);
-    molecules[2][0] = new Diatomic(atom1, atom2, atom1.radius + atom2.radius, createVector(100, 100), createVector(25, 25), PI / 2, createVector(0, 0, PI / 2));
+    molecules[2][0] = new Diatomic(atom1, atom2, atom1.radius + atom2.radius, createVector(500, 100), createVector(50, 10), 0, createVector(0, 0, PI));
 }
 
 function draw() {
