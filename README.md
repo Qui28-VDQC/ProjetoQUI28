@@ -31,7 +31,7 @@ identificar a função da branch e pode ser:
 
 * fix-energy-leak: Branch pra corrigir algum problema de falta de conservação de energia.
 * refactor-tree-node: Branch para reestruturar classes ligadas aos nós de umar árvore.
-* feature-atomic-boh: Branch para implementar átomos segundo o modelo de Bohr.
+* feature-atomic-bohr: Branch para implementar átomos segundo o modelo de Bohr.
 * document-simulation-singleton: Branch para documentar a classe do simulador.
 * other-cute-cat-pics: Branch com algum propósito carteado que não se encaixe nos anteriores. **Evite esse prefixo se possível**. 
 
