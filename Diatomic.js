@@ -45,24 +45,26 @@ class Diatomic {
         //collide com a parede
         //velocidade inicial do ponto que colidiu
         //v = vCM + w x (dCM + (centro do átomo até ponto colisão)
-        normal.normalize()
-        let CM_point = p5.Vector.mult(this.n, ((i == 0) ? 1 : -1) * this.d_CM[i]).add(
+        normal.normalize();
+        const CM_point = p5.Vector.mult(this.n, ((i == 0) ? 1 : -1) * this.d_CM[i]).add(
             p5.Vector.mult(normal, -this.atoms[i].radius));
-        let collided_point_vel = p5.Vector.add(this.cm_vel,
+        const collided_point_vel = p5.Vector.add(this.cm_vel,
             p5.Vector.cross(this.omega, CM_point));
-        let m_tot = this.atoms[0].m + this.atoms[1].m;
-        let inertia = this.atoms[0].m * this.d_CM[0] ** 2 + this.atoms[1].m * this.d_CM[1] ** 2;
+        const m_tot = this.atoms[0].m + this.atoms[1].m;
+        const inertia = this.atoms[0].m * this.d_CM[0] ** 2 + this.atoms[1].m * this.d_CM[1] ** 2;
         let e = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
         let delta_p = normal;
         //módulo do delta_p
-        let j = -2 * collided_point_vel.dot(normal)
+        const j = -2 * collided_point_vel.dot(normal)
             / (1 / m_tot + p5.Vector.cross(CM_point, normal).magSq() / inertia);
         delta_p.mult(j);
         this.cm_vel.add(p5.Vector.div(delta_p, m_tot));
         //se for o átomo 0, this.n já tá na direção certa
-        this.omega.add(p5.Vector.div(p5.Vector.cross(
-            p5.Vector.mult(CM_point, delta_p), inertia)));
-        e = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2 - e;
+        this.omega.add(p5.Vector.div(
+            p5.Vector.cross(p5.Vector.mult(CM_point, delta_p), inertia)
+                            ));
+        e *= -1;
+        e += m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
         console.log(e);
     }
     update(dt) {
