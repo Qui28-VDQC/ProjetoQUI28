@@ -18,24 +18,26 @@ class Diatomic {
         //omega: vetor da velocidade angular, EM RAD/S
         this.atoms = [atom1, atom2];
         this.dist = dist;
+        //lista dos módulos de CM-átomo1 e CM-átomo2
         this.d_CM = [this.atoms[1].m * this.dist / (this.atoms[0].m + this.atoms[1].m)];
         this.d_CM.push(this.dist - this.d_CM[0]);
         this.cm_pos = cm_pos;
         this.cm_vel = cm_vel;
-        //aponta do cm pro atom 1
-        this.n = p5.Vector.fromAngle(ang);
+        //aponta do cm pro atom 1 e cm pro átomo 2
+        this.n = [p5.Vector.fromAngle(ang, this.d_CM[0]), p5.Vector.fromAngle(ang + PI, this.d_CM[1])];
         this.omega = omega;
     }
     translate(dt) {
         this.cm_pos.add(p5.Vector.mult(this.cm_vel, dt));
     }
     rotate(dt) {
-        this.n.rotate(this.omega.z * dt);
+        this.n[0].rotate(this.omega.z * dt);
+        this.n[1].rotate(this.omega.z * dt);
     }
     atom_centers() {
         //pos_atomo = posCM + d_atomo_CM*n
-        let pos_atom1 = p5.Vector.add(this.cm_pos, p5.Vector.mult(this.n, this.d_CM[0]));
-        let pos_atom2 = p5.Vector.sub(this.cm_pos, p5.Vector.mult(this.n, this.d_CM[1]));
+        let pos_atom1 = p5.Vector.add(this.cm_pos, this.n[0]);
+        let pos_atom2 = p5.Vector.add(this.cm_pos, this.n[1]);
         return [pos_atom1, pos_atom2];
     }
     wall_collide(i, normal) {
@@ -45,27 +47,32 @@ class Diatomic {
         //collide com a parede
         //velocidade inicial do ponto que colidiu
         //v = vCM + w x (dCM + (centro do átomo até ponto colisão)
+        if (p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[i])).dot(normal) >= 0) {
+            return;
+        }
         normal.normalize();
-        const CM_point = p5.Vector.mult(this.n, ((i == 0) ? 1 : -1) * this.d_CM[i]).add(
-            p5.Vector.mult(normal, -this.atoms[i].radius));
+        //CM_point = cm_pos + cm-átomo[i] + -raio * normal
+        const CM_point = p5.Vector.add(this.n[i], p5.Vector.mult(normal, -this.atoms[i].radius));
+        // CP_vel = cm_vel + omega x r
         const collided_point_vel = p5.Vector.add(this.cm_vel,
             p5.Vector.cross(this.omega, CM_point));
         const m_tot = this.atoms[0].m + this.atoms[1].m;
         const inertia = this.atoms[0].m * this.d_CM[0] ** 2 + this.atoms[1].m * this.d_CM[1] ** 2;
-        let e = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
+        //energia pré colisão
+        let E = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
         let delta_p = normal;
         //módulo do delta_p
+        //−(1 + e) collided_point_vel · n / (1/ma + (CM_point × n)2 ⁄ Ia)
         const j = -2 * collided_point_vel.dot(normal)
-            / (1 / m_tot + p5.Vector.cross(CM_point, normal).magSq() / inertia);
+            / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia));
         delta_p.mult(j);
+        //cm_vel = cm_vel + j *n* / m_tot
         this.cm_vel.add(p5.Vector.div(delta_p, m_tot));
-        //se for o átomo 0, this.n já tá na direção certa
-        this.omega.add(p5.Vector.div(
-            p5.Vector.cross(p5.Vector.mult(CM_point, delta_p), inertia)
-                            ));
-        e *= -1;
-        e += m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
-        console.log(e);
+        //omega = omega + (CM_point x j *n*) / inertia
+        this.omega.add(p5.Vector.div(p5.Vector.cross(CM_point, delta_p), inertia));
+        E *= -1;
+        E += m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
+        console.log(E);
     }
     update(dt) {
         this.translate(dt);
@@ -77,6 +84,8 @@ class Diatomic {
         for (i = 0; i < 2; i++) {
             //corrigir "ultrapassagem"
             if (poss[i].x + this.atoms[i].radius > width) {
+                //o centro do átomo ultrapassou a parede em 
+                //poss[i].x+this.atoms[i].radius-width
                 this.cm_pos.sub([poss[i].x + this.atoms[i].radius - width, 0, 0]);
                 normal = createVector(-1, 0);
                 break;
