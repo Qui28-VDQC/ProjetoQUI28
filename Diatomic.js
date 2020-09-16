@@ -8,12 +8,12 @@ function project(v, a) {
     //<v, a>/||a||^2 * a
     return p5.Vector.mult(a, v.dot(a) / (a.magSq()));
 }
-function Bhaskara(a, b , c){
+function Bhaskara(a, b, c) {
     //função que resolve equações de segundo grau
-    if (b**2-4*a*c<0)
+    if (b ** 2 - 4 * a * c < 0)
         return null;
     else
-    return [(-b+Math.sqrt(b**2-4*a*c))/(2*a),(-b-Math.sqrt(b**2-4*a*c))/(2*a)];
+        return [(-b + Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a), (-b - Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)];
 }
 class Diatomic {
     constructor(atom1, atom2, dist, cm_pos, cm_vel, ang, omega, E_lig, E_int) {
@@ -31,10 +31,10 @@ class Diatomic {
         this.cm_pos = cm_pos;
         this.cm_vel = cm_vel;
         //aponta do cm pro atom 1
-        this.n = [p5.Vector.fromAngle(ang,this.d_CM[0]), p5.Vector.fromAngle(ang+PI, this.d_CM[1])];
+        this.n = [p5.Vector.fromAngle(ang, this.d_CM[0]), p5.Vector.fromAngle(ang + PI, this.d_CM[1])];
         this.omega = omega;
-        this.E_lig= E_lig;
-        this.E_int= E_int;
+        this.E_lig = E_lig;
+        this.E_int = E_int;
     }
     translate(dt) {
         this.cm_pos.add(p5.Vector.mult(this.cm_vel, dt));
@@ -73,26 +73,26 @@ class Diatomic {
         let e;
         //----------------------------------------------------------------------------------------------
         //CÓDIGO TESTE (FOTO NA CONVERSA DO ZAP ZAP)
-        if (this.E_int>-this.E_lig){
-        let fake_deltav= -(collided_point_vel.dot(normal)
-        / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia)))/m_tot;
-        fake_deltav=p5.Vector.mult(normal,fake_deltav);
-        let fake_delta_omega=-(collided_point_vel.dot(normal)
-        / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia)))/inertia;
-        fake_delta_omega=p5.Vector.cross(CM_point, normal).mult(fake_delta_omega);
-        let a=fake_deltav.magSq()*m_tot/2+fake_delta_omega.magSq()*inertia/2;
-        let b=m_tot*this.cm_vel.dot(fake_deltav)+inertia*this.omega.dot(fake_delta_omega);
-        let c= -(this.E_int+this.E_lig)/5; //TESTE
-        this.E_int-=(this.E_int+this.E_lig)/5;
-        e=Bhaskara(a, b, c)[0]-1;
+        if (this.E_int > -this.E_lig) {
+            let fake_deltav = -(collided_point_vel.dot(normal)
+                / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia))) / m_tot;
+            fake_deltav = p5.Vector.mult(normal, fake_deltav);
+            let fake_delta_omega = -(collided_point_vel.dot(normal)
+                / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia))) / inertia;
+            fake_delta_omega = p5.Vector.cross(CM_point, normal).mult(fake_delta_omega);
+            let a = fake_deltav.magSq() * m_tot / 2 + fake_delta_omega.magSq() * inertia / 2;
+            let b = m_tot * this.cm_vel.dot(fake_deltav) + inertia * this.omega.dot(fake_delta_omega);
+            let c = -(this.E_int + this.E_lig) / 5; //TESTE
+            this.E_int -= (this.E_int + this.E_lig) / 5;
+            e = Bhaskara(a, b, c)[0] - 1;
         }
         else
-            e=1;
+            e = 1;
         //---------------------------------------------------------------------------------------------
         let delta_p = normal;
         //módulo do delta_p
         //−(1 + e) collided_point_vel · n / (1/ma + (CM_point × n)2 ⁄ Ia)
-        const j = -(1+e) * collided_point_vel.dot(normal)
+        const j = -(1 + e) * collided_point_vel.dot(normal)
             / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia));
         delta_p.mult(j);
         //cm_vel = cm_vel + j *n* / m_tot
@@ -101,7 +101,6 @@ class Diatomic {
         this.omega.add(p5.Vector.div(p5.Vector.cross(CM_point, delta_p), inertia));
         E *= -1;
         E += m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
-        console.log(E);
     }
     update(dt) {
         this.translate(dt);
