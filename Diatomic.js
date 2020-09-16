@@ -35,10 +35,17 @@ class Diatomic {
         this.n[1].rotate(this.omega.z * dt);
     }
     atom_centers() {
+        //TODO: alterar pos dos atomos
         //pos_atomo = posCM + d_atomo_CM*n
         let pos_atom1 = p5.Vector.add(this.cm_pos, this.n[0]);
         let pos_atom2 = p5.Vector.add(this.cm_pos, this.n[1]);
         return [pos_atom1, pos_atom2];
+    }
+
+    atom_vels() {
+        this.atoms[0].velocity = p5.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[0]));
+        this.atoms[1].velocity = p5.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[1]));
+        return [this.atoms[0].velocity, this.atoms[1].velocity];
     }
     wall_collide(i, normal) {
         //ERRADO!!! não conserva energia
@@ -116,3 +123,27 @@ class Diatomic {
         circle(centers[1].x, centers[1].y, 2 * this.atoms[1].radius);
     }
 }
+
+function check_collision_di_di(molec1, molec2, dt) {
+    //pos, velocity, radius, mass, name
+    let fake_atom1 = new Atom(molec1.cm_pos, molec1.cm_vel,
+        2 * (molec1.atoms[0].radius + molec1.atoms[1].radius), 0, "");
+    let fake_atom2 = new Atom(molec2.cm_pos, molec2.cm_vel,
+        2 * (molec2.atoms[0].radius + molec2.atoms[1].radius), 0, "");
+    let deltaT = check_collision(fake_atom1, fake_atom2);
+    if (deltaT > 0 && deltaT < dt) {
+        //resto da checagem
+        //deep copy!!!
+        let atoms1_centers = molec1.atom_centers();
+        molec1.atom_vels()
+        let fake_atoms1 = [new Atom(atoms1_centers[0], molec1.atoms[0].velocity,
+            molec1.atoms[0].radius, 0, ""),
+        new Atom(atoms1_centers[0], molec1.atoms[0].velocity,
+            molec1.atoms[0].radius, 0, "")];
+        let fake_molec1 = new Diatomic(fake_atoms1[0], fake_atoms1[1], molec1.dist, molec1.cm_pos);
+    }
+    else {
+        return null;
+    }
+}
+
