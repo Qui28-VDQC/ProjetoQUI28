@@ -124,23 +124,60 @@ class Diatomic {
     }
 }
 
+
+
+function deepCopyFunction(inObject) {
+    let outObject, value, key;
+
+    if (typeof inObject !== "object" || inObject === null) {
+        return inObject; // Return the value if inObject is not an object
+    }
+
+    // Create an array or object to hold the values
+    outObject = Array.isArray(inObject) ? [] : {};
+
+    for (key in inObject) {
+        value = inObject[key];
+
+        // Recursively (deep) copy for nested objects, including arrays
+        outObject[key] = deepCopyFunction(value);
+    }
+
+    return outObject;
+}
+
 function check_collision_di_di(molec1, molec2, dt) {
-    //pos, velocity, radius, mass, name
-    let fake_atom1 = new Atom(molec1.cm_pos, molec1.cm_vel,
-        2 * (molec1.atoms[0].radius + molec1.atoms[1].radius), 0, "");
-    let fake_atom2 = new Atom(molec2.cm_pos, molec2.cm_vel,
-        2 * (molec2.atoms[0].radius + molec2.atoms[1].radius), 0, "");
+    //dt é o tempo entre 2 frames
     let deltaT = check_collision(fake_atom1, fake_atom2);
     if (deltaT > 0 && deltaT < dt) {
         //resto da checagem
-        //deep copy!!!
-        let atoms1_centers = molec1.atom_centers();
-        molec1.atom_vels()
-        let fake_atoms1 = [new Atom(atoms1_centers[0], molec1.atoms[0].velocity,
-            molec1.atoms[0].radius, 0, ""),
-        new Atom(atoms1_centers[0], molec1.atoms[0].velocity,
-            molec1.atoms[0].radius, 0, "")];
-        let fake_molec1 = new Diatomic(fake_atoms1[0], fake_atoms1[1], molec1.dist, molec1.cm_pos);
+        let fake_molec1 = deepCopyFunction(molec1);
+        let fake_molec2 = deepCopyFunction(molec2);
+        //t é um contador de tempo
+        let t = 0;
+        do {
+            //maxima velocidade? tolerância de deslocamento entre frames?
+            let max_vel = Math.max(...(fake_molec1.atom_vels()
+                + fake_molec2.atom_vels()).forEach(el => el.mag()));
+            //dt_dyn é um intervalo de tempo tal que o átomo mais rápido 
+            //percorre menos que tol (menor raio / 2)
+            let tol = Math.min(...(fake_molec1.atoms + fake_molec2.atoms).forEach(el => el.radius / 2));
+            let dt_dyn = tol / max_vel;
+
+            //checagem de sobreposição
+            for (let atom1 in fake_molec1.atoms) {
+                for (let atom2 in fake_molec2.atoms) {
+                    if (atom1.pos.dist(atom2.pos) <= atom1.radius + atom2.radius) {
+                        //há colisão
+                        return t;
+                    }
+                }
+            }
+            t += dt_dyn
+            fake_molec1.update(dt_dyn);
+            fake_molec2.update(dt_dyn);
+        } while (t < dt)
+        return null;
     }
     else {
         return null;
