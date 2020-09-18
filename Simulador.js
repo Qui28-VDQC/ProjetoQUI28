@@ -23,8 +23,11 @@ let molec_ativacoes = [0, 0, 300000];
 //depois tirar e preencher no setup
 
 //quantidades
-let atom_num = [5, 5];
+let atom_num = [10, 0];
 let molec_num = [0, 0, 0];
+
+//lista dos pares de átomos que reagem
+let reaction_table = [["a", "b"], ["b", "a"]];
 
 //lista dos átomos
 //array 2d com as instâncias de cada tipo, em ordem
@@ -77,12 +80,10 @@ function setup() {
     for (let i = 0; i < atom_num[0]; i++) {
         atoms[0][i] = (a_c(rand_vec(0, width, 0, height), rand_vec(-75, 75, -75, 75)));
     }
-    for (let i = 0; i < atom_num[0]; i++) {
-        atoms[1][i] = (b_c(rand_vec(0, width, 0, height), rand_vec(-75, 75, -75, 75)));
+    for (let i = 0; i < atom_num[1]; i++) {
+        atoms[1][i] = (b_c(rand_vec(0, width, 0, height), rand_vec(-150, 150, -150, 150)));
     }
-
-    let mi = atoms[0][0].m * atoms[1][0].m / (atoms[0][0].m + atoms[1][0].m);
-    console.log(mi * atoms[0][0].velocity.magSq() / 2);
+    console.log(atoms);
 }
 
 
@@ -104,31 +105,37 @@ function draw() {
             i_b = b_list[1];
             if (a != b) {
                 let deltaT = check_collision(a, b);
+                //se houver encontro
                 if (deltaT > 0 && deltaT < dt) {
-                    //adicionar reação aqui
-                    v = react(a, b, molec_ligs[2], molec_ativacoes[2]);
-                    if (v != null) {
-                        if (a.name == "a" && b.name == "b") {
-                            molecules[2].push(new Diatomic(a, b, a.radius + b.radius, v[0], v[1],
-                                v[2], v[3], molec_ligs[2], v[4]));
-                            if (atom_types[0] == a.name) {
-                                atoms[0][i_a] = null;
-                                atoms[1][i_b] = null;
+                    //se os átomos forem do tipo que reage
+                    if (reaction_table.includes([a.name, b.name])) {
+                        //tenta reagir
+                        v = react(a, b, molec_ligs[2], molec_ativacoes[2]);
+                        //se tem energia suficiente pra reagir...
+                        if (v != null) {
+                            if (a.name == "a" && b.name == "b") {
+                                molecules[2].push(new Diatomic(a, b, a.radius + b.radius, v[0], v[1],
+                                    v[2], v[3], molec_ligs[2], v[4]));
+                                if (atom_types[0] == a.name) {
+                                    atoms[0][i_a] = null;
+                                    atoms[1][i_b] = null;
 
-                            }
-                            else {
-                                atoms[0][i_b] = null;
-                                atoms[1][i_a] = null;
+                                }
+                                else {
+                                    atoms[0][i_b] = null;
+                                    atoms[1][i_a] = null;
+                                }
                             }
                         }
-
-
-
+                        //senão, a energia não é suficiente e eles apenas colidem
+                        else
+                            collide(a, b);
                     }
-                    else
+                    //senão, são de tipos que nunca reagem, e só colidem
+                    else {
                         collide(a, b);
+                    }
                 }
-
             }
         }
     }
@@ -144,6 +151,4 @@ function draw() {
         a.update(dt);
         a.draw();
     }
-
-
 }
