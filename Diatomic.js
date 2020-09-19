@@ -44,10 +44,17 @@ class Diatomic {
         this.n[1].rotate(this.omega.z * dt);
     }
     atom_centers() {
+        //TODO: alterar pos dos atomos
         //pos_atomo = posCM + d_atomo_CM*n
         let pos_atom1 = p5.Vector.add(this.cm_pos, this.n[0]);
         let pos_atom2 = p5.Vector.add(this.cm_pos, this.n[1]);
         return [pos_atom1, pos_atom2];
+    }
+
+    atom_vels() {
+        let v1 = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[0]));
+        let v2 = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[1]));
+        return [v1, v2];
     }
     wall_collide(i, normal) {
         //ERRADO!!! não conserva energia
@@ -144,3 +151,68 @@ class Diatomic {
         circle(centers[1].x, centers[1].y, 2 * this.atoms[1].radius);
     }
 }
+
+
+function clone_molec(molec) {
+    let atom1 = new Atom(createVector(molec.atoms[0].pos.x, molec.atoms[0].pos.y),
+        createVector(0, 0),
+        molec.atoms[0].radius, molec.atoms[0].m, molec.atoms[0].name);
+    let atom2 = new Atom(createVector(molec.atoms[1].pos.x, molec.atoms[1].pos.y),
+        createVector(0, 0),
+        molec.atoms[1].radius, molec.atoms[1].m, molec.atoms[1].name);
+
+    let fake_molec = new Diatomic(atom1, atom2, molec.dist,
+        createVector(molec.cm_pos.x, molec.cm_pos.y),
+        createVector(molec.cm_vel.x, molec.cm_vel.y), molec.n[0].heading(), createVector(0, 0, molec.omega.z));
+    return fake_molec;
+}
+
+function check_collision_di_di(molec1, molec2, dt) {
+    //dt é o tempo entre 2 frames
+    let fake_atom1 = new Atom(molec1.cm_pos, molec1.cm_vel,
+        (molec1.atoms[0].radius + molec1.atoms[1].radius), 5, "tebbv");
+    let fake_atom2 = new Atom(molec2.cm_pos, molec2.cm_vel,
+        (molec2.atoms[0].radius + molec2.atoms[1].radius), 5, "evrb");
+    let deltaT = check_collision(fake_atom1, fake_atom2);
+    if (deltaT > 0 && deltaT < dt) {
+        //resto da checagem
+        let fake_molec1 = clone_molec(molec1);
+        let fake_molec2 = clone_molec(molec2);
+        //t é um contador de tempo
+        let t = 0;
+        do {
+            //maxima velocidade? tolerância de deslocamento entre frames?
+            let v_list = [];
+            let vec_list = fake_molec1.atom_vels().concat(fake_molec2.atom_vels());
+            vec_list.forEach(el => v_list.push(el.mag()))
+            let max_vel = Math.max(...v_list);
+            //dt_dyn é um intervalo de tempo tal que o átomo mais rápido 
+            //percorre menos que tol (menor raio / 2)
+            let radius_list = [];
+            let atom_list = fake_molec1.atoms.concat(fake_molec2.atoms);
+            atom_list.forEach(el => radius_list.push(el.radius / 2))
+            let tol = Math.min(...radius_list);
+            let dt_dyn = Math.min(tol / max_vel, dt);
+
+            //checagem de sobreposição
+            for (let i = 0; i < 2; i++) {
+                atom1 = fake_molec1.atoms[i];
+                for (let j = 0; j < 2; j++) {
+                    atom2 = fake_molec2.atoms[j];
+                    if (atom1.pos.dist(atom2.pos) <= atom1.radius + atom2.radius) {
+                        //há colisão
+                        return t;
+                    }
+                }
+            }
+            t += dt_dyn
+            fake_molec1.update(dt_dyn);
+            fake_molec2.update(dt_dyn);
+        } while (t < dt)
+        return null;
+    }
+    else {
+        return null;
+    }
+}
+
