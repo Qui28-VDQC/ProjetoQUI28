@@ -40,9 +40,9 @@ function check_collision(atom1, atom2) {
     //checagem explicada no drive dos livros: COlisão?
     //subtrai, sem alterar nenhum
     let dpos = p5.Vector.sub(atom1.pos, atom2.pos)
-    let deltaV = p5.Vector.sub(a.velocity, b.velocity);
+    let deltaV = p5.Vector.sub(atom1.velocity, atom2.velocity);
     let beta = -p5.Vector.dot(deltaV, dpos) / deltaV.mag();
-    let deltaT = beta - sqrt(sq(a.radius + b.radius) - sq(dpos.mag()) + sq(beta));
+    let deltaT = beta - sqrt(sq(atom1.radius + atom2.radius) - sq(dpos.mag()) + sq(beta));
     deltaT /= deltaV.mag();
     return deltaT
 }
@@ -51,17 +51,17 @@ function collide(atom1, atom2) {
     //testar let n = p5.Vector.normalize(sub...)
     let n = p5.Vector.sub(atom1.pos, atom2.pos);
     n.normalize()
-    /*a.x += 0.5*n.x;
-    a.y += 0.5*n.y;
+    /*atom1.x += 0.5*n.x;
+    atom1.y += 0.5*n.y;
     b.x -= 0.5*n.x;
-    b.y -= 0.5*n.y;*/
+    atom2.y -= 0.5*n.y;*/
     //Velocities in relationship to the normal axis
-    let va_n = p5.Vector.dot(a.velocity, n);
-    let vb_n = p5.Vector.dot(b.velocity, n);
+    let va_n = p5.Vector.dot(atom1.velocity, n);
+    let vb_n = p5.Vector.dot(atom2.velocity, n);
     //Scalars
-    let a_esc = ((a.m - b.m) * va_n + 2 * b.m * vb_n) / (a.m + b.m);
-    let b_esc = (2 * a.m * va_n + (b.m - a.m) * vb_n) / (a.m + b.m);
+    let a_esc = ((atom1.m - atom2.m) * va_n + 2 * atom2.m * vb_n) / (atom1.m + atom2.m);
+    let b_esc = (2 * atom1.m * va_n + (atom2.m - atom1.m) * vb_n) / (atom1.m + atom2.m);
     //Final velocities
-    a.velocity.add(p5.Vector.mult(n, a_esc - va_n));
-    b.velocity.add(p5.Vector.mult(n, b_esc - vb_n));
+    atom1.velocity.add(p5.Vector.mult(n, a_esc - va_n));
+    atom2.velocity.add(p5.Vector.mult(n, b_esc - vb_n));
 }
