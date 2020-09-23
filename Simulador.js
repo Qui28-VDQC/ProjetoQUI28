@@ -3,8 +3,8 @@ outros arquivos e de fato executa. Variáveis do começo devem
 ser alteradas dependendo do propósito da simulação*/
 
 //construtores de tipos de átomos específicos
-const a_c = (pos, vel) => { return new Atom(pos, vel, 20, 100, "a") };
-const b_c = (pos, vel) => { return new Atom(pos, vel, 50, 150, "b") };
+const a_c = (pos, vel) => { return new Atom(pos, vel, 35, 100, "a") };
+const b_c = (pos, vel) => { return new Atom(pos, vel, 35, 100, "b") };
 
 //tipos de átomo isolado
 //vetor de strings
@@ -89,33 +89,31 @@ function setup() {
     let atom1 = a_c(0, 0);
     let atom2 = b_c(0, 0);
     molecules[2].push(new Diatomic(atom1, atom2, atom1.radius + atom2.radius,
-        createVector(100, 300), createVector(50, 0), 0, createVector(0, 0, PI)));
+        createVector(100, 300), createVector(50, 0), 0, createVector(0, 0, 0),0 ,0));
     molecules[2].push(new Diatomic(atom1, atom2, atom1.radius + atom2.radius,
-        createVector(500, 300), createVector(-50, 0), 0, createVector(0, 0, PI)));
-
+        createVector(500, 300), createVector(0, 0), PI, createVector(0, 0, 0),0,0));
 }
 
 
 function draw() {
     background(150);
     dt = min(1, 1 / frameRate());
-    //às vezes a função não colide elasticamente dois atomos do tipo b
+    let particulas=enumerate(atoms.concat(molecules))
+    for (let i=0; i<particulas.length; i++) {
 
-    for (a_list of enumerate(atoms.concat(molecules))) {
-
-        if (a_list[0] == null) {
+        if (particulas[i][0] == null) {
             continue;
         }
-        a = a_list[0];
-        i_a = a_list[1];
+        a = particulas[i][0];
+        i_a = particulas[i][1];
 
-        for (b_list of enumerate(atoms.concat(molecules))) {
+        for (let j=0; j<particulas.length;j++) {
 
-            if (b_list[0] == null) {
+            if (particulas[j][0] == null) {
                 continue;
             }
-            b = b_list[0];
-            i_b = b_list[1];
+            b = particulas[j][0];
+            i_b = particulas[j][1];
             if (a != b) {
 
                 if (a instanceof Atom && b instanceof Atom) {
@@ -154,14 +152,17 @@ function draw() {
                 }
                 if ((a instanceof Diatomic)
                     && (b instanceof Diatomic)) {
-                    if (check_collision_di_di(a, b, dt) != null) {
-                        console.log("funfou");
-
+                    v=check_collision_di_di(a,b,dt);
+                    if (v != null) {
+                        collide_di_di(a,v[0],b,v[1]);
+                        if(i_a ==1)
+                            console.log(a.cm_vel)
                     }
                 }
             }
         }
     }
+    console.log(molecules[2][1].cm_vel)
     //desenha
     for (a of flatten(molecules)) {
 
