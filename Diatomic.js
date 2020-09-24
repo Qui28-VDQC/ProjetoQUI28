@@ -2,19 +2,24 @@
 Classe para moléculas diatômicas.
 Depende da classe de átomo individual.
 */
+const E_LIG_PADRAO = 500000;
+const E_ATIV_PADRAO = 300000;
 
-function project(v, a) {
-    //projeta v em a
-    //<v, a>/||a||^2 * a
-    return p5.Vector.mult(a, v.dot(a) / (a.magSq()));
+const energies = (bond, activation) => { return {BOND: bond, ACTV: activation}; };
+
+const E_table = (molec_name) => {
+    if(E_table_data[molec_name] == undefined) return false;
+    else return E_table_data[molec_name];
 }
-function Bhaskara(a, b, c) {
-    //função que resolve equações de segundo grau
-    if (b ** 2 - 4 * a * c < 0)
-        return null;
-    else
-        return [(-b + Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a), (-b - Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)];
+
+const E_table_data = {
+    XX: energies(0, 0),
+    YY: energies(0, 0),
+    XY: energies(500000, 300000),
+    YX: energies(500000, 300000)
 }
+
+
 class Diatomic {
     constructor(atom1, atom2, dist, cm_pos, cm_vel, ang, omega, E_lig, E_int) {
         //atom1 e atom2: instâncias de Atom
@@ -33,7 +38,7 @@ class Diatomic {
         //aponta do cm pro atom 1
         this.n = [p5.Vector.fromAngle(ang, this.d_CM[0]), p5.Vector.fromAngle(ang + PI, this.d_CM[1])];
         this.omega = omega;
-        this.E_lig = E_lig;
+        this.E_lig = (typeof E_lig !== undefined) ? E_lig : E_LIG_PADRAO;
         this.E_int = E_int;
         //colocar essas propriedades na função wall collide
         this.m_total= atom1.m+atom2.m;
