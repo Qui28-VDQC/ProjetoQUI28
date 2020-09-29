@@ -6,15 +6,15 @@ ser alteradas dependendo do propósito da simulação*/
 const atom_A = (pos, vel) => { return new Atom(pos, vel, 55, 100, "X") };
 const atom_B = (pos, vel) => { return new Atom(pos, vel, 15, 10, "Y") };
 
-//quantidades de cada partícula
+//quantidades de cada partícula 
 let atom_num = {
-    X: 2,
-    Y: 2
+    X: 5,
+    Y: 5
 }
 let molecule_num = {
     XX: 0,
     YY: 0,
-    XY: 2
+    XY: 0
 }
 
 
@@ -29,12 +29,13 @@ let particles_rm = []; // partículas a remover
 
 function setup() {
     createCanvas(600, 600);
-    //inicializar partículas
+    //inicializar partículas 
+    const vel = 200;
     for (let i = 0; i < atom_num.X; i++) {
-        particles.push(atom_A(rand_vec(0, width, 0, height), rand_vec(-75, 75, -75, 75)));
+        particles.push(atom_A(rand_vec(0, width, 0, height), rand_vec(-vel, vel, -vel, vel)));
     }
     for (let i = 0; i < atom_num.Y; i++) {
-        particles.push(atom_B(rand_vec(0, width, 0, height), rand_vec(-150, 150, -150, 150)));
+        particles.push(atom_B(rand_vec(0, width, 0, height), rand_vec(-vel, vel, -vel, vel)));
     }
 }
 
@@ -68,31 +69,42 @@ function draw() {
                         collide(particles[i], particles[j]);
                 }
             }
-            
+
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
-                v = check_collision_di_di(a, b, dt);
+                let v = check_collision_di_di(a, b, dt);
                 if (v != null)
                     collide_di_di(a, v[0], b, v[1]);
             }
-        }        
+            if ((a instanceof Atom) && (b instanceof Diatomic)) {
+                let aux = a;
+                a = b;
+                b = aux;
+            }
+            if ((a instanceof Diatomic) && (b instanceof Atom)) {
+                let v = check_collision_di_mono(a, b, dt);
+                if (v != null) {
+                    collide_di_mono(a, v, b);
+                }
+            }
+        }
     }
-     //atualizar lista de partículas
-    
-    for(let index of particles_rm.sort((x, y) => { return y - x;})) {
+    //atualizar lista de partículas
+    for (let index of particles_rm.sort((x, y) => { return y - x; })) {
         particles.splice(index, 1);
     }
     //adicionar novas partícular(produtos de reação, por exemplo)
+    //adicionar átomos junto de átomos, moléculas junto de moléculas, etc
     particles = particles.concat(particles_add);
     // reset
     particles_add = [];
     particles_rm = [];
-    
+
     for (let a of particles) {
         //update da física
         a.update(dt);
         //desenhar
         a.draw();
     }
-    
+
 }
