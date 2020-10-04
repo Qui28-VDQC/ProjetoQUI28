@@ -1,3 +1,10 @@
+const zero_cond = () => {
+    return {
+        pos: createVector(0, 0),
+        vel: createVector(0, 0)
+    };
+}
+
 function lin_interpol(v1, v2, frac) {
     //v1 é vetor inicial
     //v2 é vetor final
@@ -14,9 +21,49 @@ function lin_interpol(v1, v2, frac) {
     }
 }
 
-function rand_vec(x_min, x_max, y_min, y_max) {
-    return createVector(lin_interpol(x_min, x_max, Math.random()),
-        lin_interpol(y_min, y_max, Math.random()));
+function rand_pos() {
+    return createVector(lin_interpol(0, width, Math.random()),
+        lin_interpol(0, height, Math.random()));
+}
+
+function rand_vel(max_mag) {
+    return p5.Vector.random2D().mult(max_mag);
+}
+
+function eval_atom_init_cond(atom_cond, i) {
+    let cond = {
+        pos: null,
+        vel: null
+    }
+    if (atom_cond.pos[i] == "random")
+        cond.pos = rand_pos();
+    else cond.pos = createVector(...atom_cond.pos[i]);
+    if (typeof atom_cond.vel[i] == "number")
+        cond.vel = rand_vel(atom_cond.vel[i]);
+    else cond.vel = createVector(...atom_cond.vel[i]);
+    return cond;
+}
+
+function eval_molec_init_cond(molec_cond, i) {
+    let cond = {
+        cm_pos: null,
+        cm_vel: null,
+        ang: null,
+        omega: null
+    }
+    if (molec_cond.all_random) {
+        cond.cm_pos = rand_pos();
+        cond.cm_vel = rand_vel(molec_cond.cm_vel);
+        cond.ang = 2 * PI * Math.random();
+        cond.omega = createVector(0, 0, Math.random()).mult(molec_cond.omega);
+    }
+    else {
+        cond.cm_pos = createVector(...molec_cond.cm_pos[i]);
+        cond.cm_vel = createVector(...molec_cond.cm_vel[i]);
+        cond.ang = molec_cond.ang;
+        cond.omega = createVector(0, 0, molec_cond.omega);
+    }
+    return cond;
 }
 
 function project(v, a) {
