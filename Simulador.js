@@ -21,6 +21,8 @@ const molec_XY = (cond) => {
         atom_Y(zero_cond()), X.radius + Y.radius, cond.cm_pos, cond.cm_vel, cond.ang, cond.omega, E_table("XY").BOND, 0)
 };
 
+const cold = [0, 0, 255];
+const hot = [255, 0, 0];
 
 
 //lista de partículas "real"
@@ -112,12 +114,31 @@ function draw() {
     // reset
     particles_add = [];
     particles_rm = [];
+    if (color_vel) {
+        let vels = [];
+        for (let p of particles) {
+            vels.push((p instanceof Diatomic) ? p.cm_vel.mag() : p.velocity.mag());
+        }
+        let min_vel = Math.min(...vels);
+        let max_vel = Math.max(...vels);
+        let color;
+        for (let a of particles) {
+            //update da física
+            a.update(dt);
+            //desenhar
 
-    for (let a of particles) {
-        //update da física
-        a.update(dt);
-        //desenhar
-        a.draw();
+            if (a instanceof Atom) {
+                color = lin_interpol(cold, hot, (a.velocity.mag() - min_vel) / (max_vel - min_vel));
+                a.draw(color);
+            } else a.draw();
+        }
+    } else {
+        for (let a of particles) {
+            //update da física
+            a.update(dt);
+            //desenhar
+            a.draw();
+        }
     }
 
 }

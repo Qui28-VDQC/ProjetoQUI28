@@ -1,4 +1,5 @@
 const PI = 3.141592653589793;
+const color_vel = true;
 //parâmetros de cada átomo
 const X = {
     radius: 20,
@@ -12,24 +13,24 @@ const Y = {
 
 //quantidades de cada partícula
 let atom_num = {
-    X: 1,
-    Y: 1
+    X: 5,
+    Y: 5
 }
 let molecule_num = {
-    XX: 1,
-    YY: 1,
-    XY: 1
+    XX: 0,
+    YY: 0,
+    XY: 0
 }
 
 //posicoes iniciais
 const atom_initial_conditions = {
     X: {
         pos: Array(atom_num.X).fill("random"),
-        vel: Array(atom_num.X).fill(100)
+        vel: Array(atom_num.X).fill(200)
     },
     Y: {
         pos: Array(atom_num.Y).fill("random"),
-        vel: Array(atom_num.Y).fill(100)
+        vel: Array(atom_num.Y).fill(200)
     }
 }
 
