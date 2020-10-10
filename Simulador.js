@@ -6,6 +6,18 @@ ser alteradas dependendo do propósito da simulação*/
 const atom_X = (cond) => { return new Atom(cond.pos, cond.vel, X.radius, X.mass, "X") };
 const atom_Y = (cond) => { return new Atom(cond.pos, cond.vel, Y.radius, Y.mass, "Y") };
 
+
+//quantidades de cada partícula 
+let atom_num = {
+    X: 5,
+    Y: 5
+}
+let molecule_num = {
+    XX: 0,
+    YY: 0,
+    XY: 0
+}
+=======
 const molec_XX = (cond) => {
     return new Diatomic(atom_X(zero_cond()),
         atom_X(zero_cond()), 2 * X.radius, cond.cm_pos, cond.cm_vel, cond.ang, cond.omega, E_table("XX").BOND, 0)
@@ -25,6 +37,7 @@ const cold = [0, 0, 255];
 const hot = [255, 0, 0];
 
 
+
 //lista de partículas "real"
 let particles = [];
 //lista de partículas a serem adicionadas a particles no fim do frame
@@ -36,6 +49,7 @@ let particles_rm = []; // partículas a remover
 
 function setup() {
     createCanvas(600, 600);
+
     //inicializar partículas
     //átomo X
     let condition;
@@ -62,6 +76,7 @@ function setup() {
     for (let i = 0; i < molecule_num.XY; i++) {
         condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
         particles.push(molec_XY(condition));
+
     }
 }
 
@@ -98,18 +113,29 @@ function draw() {
 
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
-                v = check_collision_di_di(a, b, dt);
+                let v = check_collision_di_di(a, b, dt);
                 if (v != null)
                     collide_di_di(a, v[0], b, v[1]);
+            }
+            if ((a instanceof Atom) && (b instanceof Diatomic)) {
+                let aux = a;
+                a = b;
+                b = aux;
+            }
+            if ((a instanceof Diatomic) && (b instanceof Atom)) {
+                let v = check_collision_di_mono(a, b, dt);
+                if (v != null) {
+                    collide_di_mono(a, v, b);
+                }
             }
         }
     }
     //atualizar lista de partículas
-
     for (let index of particles_rm.sort((x, y) => { return y - x; })) {
         particles.splice(index, 1);
     }
     //adicionar novas partícular(produtos de reação, por exemplo)
+    //adicionar átomos junto de átomos, moléculas junto de moléculas, etc
     particles = particles.concat(particles_add);
     // reset
     particles_add = [];
