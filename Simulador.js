@@ -82,9 +82,9 @@ function draw() {
                     //esse código depende da ordenação de partículas!!!
                     const molec_name = a.name + b.name;
                     if (E_table(molec_name)
-                        && test_reaction(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV)) {
+                        && test_mono_mono(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV)) {
                         //se tem energia suficiente pra reagir...
-                        v = react(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV);
+                        v = react_mono_mono(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV);
                         //há reação, excluir átomos
                         particles_add.push(new Diatomic(a, b, a.radius + b.radius,
                             v[0], v[1], v[2], v[3], E_table(molec_name).BOND, v[4]))
