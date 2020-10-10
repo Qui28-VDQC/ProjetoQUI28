@@ -10,7 +10,9 @@ class Atom {
         //usado p checar reação
         this.name = name;
     }
-    draw() {
+    draw(color) {
+        if (color_vel)
+            fill(color);
         circle(this.pos.x, this.pos.y, 2 * this.radius);
     }
     update(dt) {
