@@ -9,8 +9,8 @@ const atom_Y = (cond) => { return new Atom(cond.pos, cond.vel, Y.radius, Y.mass,
 
 //quantidades de cada partícula 
 let atom_num = {
-    X: 5,
-    Y: 5
+    X: 10,
+    Y: 10
 }
 let molecule_num = {
     XX: 0,
@@ -89,6 +89,7 @@ function draw() {
             let a = particles[i];
             let b = particles[j];
             if (a instanceof Atom && b instanceof Atom) {
+
                 let deltaT = check_collision(a, b);
                 //se houver encontro
                 if (deltaT > 0 && deltaT < dt) {
@@ -106,9 +107,13 @@ function draw() {
                         particles_rm.push(i, j);
                         collided = false;
                     }
-                    if (collided)
+
+                    if (collided) {
                         collide(particles[i], particles[j]);
+                    }
                 }
+                if (a.pos.dist(b.pos) < a.radius + b.radius)
+                    static_collide(a, b);
             }
 
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
