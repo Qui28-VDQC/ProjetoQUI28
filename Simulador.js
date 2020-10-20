@@ -3,8 +3,9 @@ outros arquivos e de fato executa. Variáveis do começo devem
 ser alteradas dependendo do propósito da simulação*/
 
 //construtores de tipos de átomos específicos
-const atom_A = (pos, vel) => { return new Atom(pos, vel, 55, 100, "X") };
-const atom_B = (pos, vel) => { return new Atom(pos, vel, 15, 10, "Y") };
+const atom_X = (cond) => { return new Atom(cond.pos, cond.vel, X.radius, X.mass, "X") };
+const atom_Y = (cond) => { return new Atom(cond.pos, cond.vel, Y.radius, Y.mass, "Y") };
+
 
 //quantidades de cada partícula 
 let atom_num = {
@@ -16,6 +17,25 @@ let molecule_num = {
     YY: 0,
     XY: 0
 }
+=======
+const molec_XX = (cond) => {
+    return new Diatomic(atom_X(zero_cond()),
+        atom_X(zero_cond()), 2 * X.radius, cond.cm_pos, cond.cm_vel, cond.ang, cond.omega, E_table("XX").BOND, 0)
+};
+
+const molec_YY = (cond) => {
+    return new Diatomic(atom_Y(zero_cond()),
+        atom_Y(zero_cond()), 2 * Y.radius, cond.cm_pos, cond.cm_vel, cond.ang, cond.omega, E_table("YY").BOND, 0)
+};
+
+const molec_XY = (cond) => {
+    return new Diatomic(atom_X(zero_cond()),
+        atom_Y(zero_cond()), X.radius + Y.radius, cond.cm_pos, cond.cm_vel, cond.ang, cond.omega, E_table("XY").BOND, 0)
+};
+
+const cold = [0, 0, 255];
+const hot = [255, 0, 0];
+
 
 
 //lista de partículas "real"
@@ -29,13 +49,34 @@ let particles_rm = []; // partículas a remover
 
 function setup() {
     createCanvas(600, 600);
-    //inicializar partículas 
-    const vel = 200;
+
+    //inicializar partículas
+    //átomo X
+    let condition;
     for (let i = 0; i < atom_num.X; i++) {
-        particles.push(atom_A(rand_vec(0, width, 0, height), rand_vec(-vel, vel, -vel, vel)));
+        condition = eval_atom_init_cond(atom_initial_conditions.X, i);
+        particles.push(atom_X(condition));
     }
+    //átomo Y
     for (let i = 0; i < atom_num.Y; i++) {
-        particles.push(atom_B(rand_vec(0, width, 0, height), rand_vec(-vel, vel, -vel, vel)));
+        condition = eval_atom_init_cond(atom_initial_conditions.Y, i);
+        particles.push(atom_Y(condition));
+    }
+    //molécula XX
+    for (let i = 0; i < molecule_num.XX; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.XX, i);
+        particles.push(molec_XX(condition));
+    }
+    //molécula YY
+    for (let i = 0; i < molecule_num.YY; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.YY, i);
+        particles.push(molec_YY(condition));
+    }
+    //molécula XY
+    for (let i = 0; i < molecule_num.XY; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
+        particles.push(molec_XY(condition));
+
     }
 }
 
@@ -104,12 +145,31 @@ function draw() {
     // reset
     particles_add = [];
     particles_rm = [];
+    if (color_vel) {
+        let vels = [];
+        for (let p of particles) {
+            vels.push((p instanceof Diatomic) ? p.cm_vel.mag() : p.velocity.mag());
+        }
+        let min_vel = Math.min(...vels);
+        let max_vel = Math.max(...vels);
+        let color;
+        for (let a of particles) {
+            //update da física
+            a.update(dt);
+            //desenhar
 
-    for (let a of particles) {
-        //update da física
-        a.update(dt);
-        //desenhar
-        a.draw();
+            if (a instanceof Atom) {
+                color = lin_interpol(cold, hot, (a.velocity.mag() - min_vel) / (max_vel - min_vel));
+                a.draw(color);
+            } else a.draw();
+        }
+    } else {
+        for (let a of particles) {
+            //update da física
+            a.update(dt);
+            //desenhar
+            a.draw();
+        }
     }
 
 }

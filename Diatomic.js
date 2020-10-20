@@ -241,6 +241,7 @@ function collide_di_di(molec1, i, molec2, j) {
     delta_p = p5.Vector.mult(n, delta_p);
 
     //v_cm_final1=v_cm_inicial1+delta_p/m1
+
     molec1.cm_vel = p5.Vector.add(molec1.cm_vel, p5.Vector.div(delta_p, molec1.m_total));
     molec2.cm_vel = p5.Vector.sub(molec2.cm_vel, p5.Vector.div(delta_p, molec2.m_total));
     //omega_final=omega_inicial+ colided_point1 x delta_p/I
@@ -257,6 +258,7 @@ function static_collide_di_di(molec1, i, molec2, j) {
     //empurrar o CM da 2 pra não ter sobreposição
     molec2.cm_pos.add(n.mult(overlap));
 }
+
 
 function check_collision_di_mono(molec, atom, dt) {
     let fake_molec = clone_molec(molec);
