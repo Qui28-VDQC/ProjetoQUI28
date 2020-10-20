@@ -31,7 +31,22 @@ let particles = [];
 let particles_add = [];
 let particles_rm = []; // partículas a remover
 
-
+const reacts = {
+    X: {
+        XX: false,
+        XY: false,
+        YY: false
+    },
+    Y: {
+        XX: false,
+        XY: {
+            atom_f: atom_X,
+            molec_f: molec_YY,
+            type: "Y"
+        },
+        YY: false
+    }
+}
 
 
 function setup() {
@@ -74,6 +89,8 @@ function draw() {
             let a = particles[i];
             let b = particles[j];
             if (a instanceof Atom && b instanceof Atom) {
+                if (a.pos.dist(b.pos) < a.radius + b.radius)
+                    static_collide_mono_mono(a, b);
                 let deltaT = check_collision(a, b);
                 //se houver encontro
                 if (deltaT > 0 && deltaT < dt) {
@@ -95,12 +112,40 @@ function draw() {
                         collide(particles[i], particles[j]);
                 }
             }
-
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
                 v = check_collision_di_di(a, b, dt);
-                if (v != null)
+                if (v != null) {
+                    static_collide_di_di(a, v[0], b, v[1]);
                     collide_di_di(a, v[0], b, v[1]);
+                }
+            }
+            if ((a instanceof Atom) && (b instanceof Diatomic)) {
+                let aux = a;
+                a = b;
+                b = aux;
+            }
+            if ((a instanceof Diatomic) && (b instanceof Atom)) {
+                //v é o índice do átomo que colidiu
+                let v = check_collision_di_mono(a, b, dt);
+                if (v != null) {
+                    static_collide_mono_di(a, v, b);
+                    //ver se há reação
+                    //se são do tipo certo - basta que exista
+                    if (reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
+                        == a.atoms[v].name) {
+                        let new_cond = react_mono_di(b, a, v);
+                        //remove o átomo e a molécula da lista de partículas
+                        particles_rm.push(i, j);
+                        //criar o átomo livre - índice 1 - i
+
+                        particles_add.push(a.atoms[1 - v]);
+                        //criar a nova molécula
+                        particles_add.push(reacts[b.name][a.atoms[0].name
+                            + a.atoms[1].name].molec_f(new_cond));
+                    } else
+                        collide_di_mono(a, v, b);
+                }
             }
         }
     }
@@ -140,5 +185,4 @@ function draw() {
             a.draw();
         }
     }
-
 }

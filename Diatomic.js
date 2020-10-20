@@ -61,9 +61,9 @@ class Diatomic {
     }
 
     atom_vels() {
-        let v1 = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[0]));
-        let v2 = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[1]));
-        return [v1, v2];
+        this.atoms[0].velocity = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[0]));
+        this.atoms[1].velocity = p5.Vector.add(this.cm_vel, p5.Vector.cross(this.omega, this.n[1]));
+        return [this.atoms[0].velocity, this.atoms[1].velocity];
     }
     wall_collide(i, normal) {
         //ERRADO!!! não conserva energia
@@ -162,19 +162,6 @@ class Diatomic {
 }
 
 
-function clone_molec(molec) {
-    let atom1 = new Atom(createVector(molec.atoms[0].pos.x, molec.atoms[0].pos.y),
-        createVector(0, 0),
-        molec.atoms[0].radius, molec.atoms[0].m, molec.atoms[0].name);
-    let atom2 = new Atom(createVector(molec.atoms[1].pos.x, molec.atoms[1].pos.y),
-        createVector(0, 0),
-        molec.atoms[1].radius, molec.atoms[1].m, molec.atoms[1].name);
-
-    let fake_molec = new Diatomic(atom1, atom2, molec.dist,
-        createVector(molec.cm_pos.x, molec.cm_pos.y),
-        createVector(molec.cm_vel.x, molec.cm_vel.y), molec.n[0].heading(), createVector(0, 0, molec.omega.z));
-    return fake_molec;
-}
 
 function check_collision_di_di(molec1, molec2, dt) {
     // //dt é o tempo entre 2 frames
@@ -267,3 +254,81 @@ function collide_di_di(molec1, i, molec2, j) {
     //return [cm_vel1_f, cm_vel2_f, omega1_f, omega2_f];
 }
 
+function static_collide_di_di(molec1, i, molec2, j) {
+    molec1.atom_centers();
+    molec2.atom_centers()
+    let n = p5.Vector.sub(molec2.atoms[j].pos, molec1.atoms[i].pos);
+    let overlap = molec1.atoms[i].radius + molec2.atoms[j].radius - n.mag()
+    n.normalize();
+    //empurrar o CM da 2 pra não ter sobreposição
+    molec2.cm_pos.add(n.mult(overlap));
+}
+
+function check_collision_di_mono(molec, atom, dt) {
+    let fake_molec = clone_molec(molec);
+    let fake_atom = clone_atom(atom);
+    //t é um contador de tempo
+    let t = 0;
+    do {
+        //maxima velocidade? tolerância de deslocamento entre frames?
+        let v_list = [];
+        let vec_list = fake_molec.atom_vels().concat(fake_atom.velocity);
+        vec_list.forEach(el => v_list.push(el.mag()))
+        let max_vel = Math.max(...v_list);
+        //dt_dyn é um intervalo de tempo tal que o átomo mais rápido 
+        //percorre menos que tol (menor raio / 2)
+        let radius_list = [];
+        let atom_list = fake_molec.atoms.concat(fake_atom);
+        atom_list.forEach(el => radius_list.push(el.radius / 2))
+        let tol = Math.min(...radius_list);
+        let dt_dyn = Math.min(tol / max_vel, dt);
+        //atualiza a posição dos atomos da molecula
+        fake_molec.atom_centers();
+        //checagem de sobreposição
+        for (let i = 0; i < 2; i++) {
+            if (fake_molec.atoms[i].pos.dist(atom.pos) <=
+                fake_molec.atoms[i].radius + atom.radius) {
+                //há colisão
+                return i;
+            }
+        }
+        t += dt_dyn
+        fake_molec.update(dt_dyn);
+        fake_atom.update(dt_dyn);
+    } while (t < dt)
+    return null;
+}
+
+function collide_di_mono(molec, i, atom) {
+    //definindo a normal (n aponta do 2 pro 1)
+    let colided_atom1_pos = molec.atom_centers()[i];
+    let n = p5.Vector.sub(colided_atom1_pos, atom.pos);
+    n.normalize();
+    //colided_point_pos é a posição relativa do ponto de contato ao centro de massa
+    let colided_point1_pos = p5.Vector.sub(molec.n[i], p5.Vector.mult(n, molec.atoms[i].radius));
+    //calculando a velocidade dos pontos de contato;
+    //v_p=v_cm + w x (colided_atom_pos1 - n.r )
+    let colided_point1_vel = p5.Vector.add(molec.cm_vel,
+        p5.Vector.cross(molec.omega, colided_point1_pos));
+    let v_rel = p5.Vector.sub(colided_point1_vel, atom.velocity);
+    //definindo o j do site my physics lab como delta_p
+    let delta_p = -2 * v_rel.dot(n) / (1 / molec.m_total + 1 / atom.m +
+        colided_point1_pos.cross(n).magSq() / molec.I);
+
+    delta_p = p5.Vector.mult(n, delta_p);
+
+    //v_cm_final1=v_cm_inicial1+delta_p/m1
+    molec.cm_vel = p5.Vector.add(molec.cm_vel, p5.Vector.div(delta_p, molec.m_total));
+    atom.velocity = p5.Vector.sub(atom.velocity, p5.Vector.div(delta_p, atom.m));
+    //omega_final=omega_inicial+ colided_point1 x delta_p/I
+    molec.omega = p5.Vector.add(molec.omega, p5.Vector.cross(colided_point1_pos, p5.Vector.div(delta_p, molec.I)));
+}
+
+function static_collide_mono_di(molec, i, atom) {
+    molec.atom_centers();
+    let n = p5.Vector.sub(atom.pos, molec.atoms[i].pos);
+    n.normalize();
+    n.mult(molec.atoms[i].radius + atom.radius);
+    atom.pos = p5.Vector.add(molec.atoms[i].pos, n);
+
+}

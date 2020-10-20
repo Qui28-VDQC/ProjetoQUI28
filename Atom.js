@@ -67,3 +67,10 @@ function collide(atom1, atom2) {
     atom1.velocity.add(p5.Vector.mult(n, a_esc - va_n));
     atom2.velocity.add(p5.Vector.mult(n, b_esc - vb_n));
 }
+
+function static_collide_mono_mono(atom1, atom2) {
+    let n = p5.Vector.sub(atom2.pos, atom1.pos);
+    n.normalize()
+    n.mult(atom1.radius + atom2.radius);
+    atom2.pos = p5.Vector.add(atom1.pos, n);
+}

@@ -60,8 +60,8 @@ function eval_molec_init_cond(molec_cond, i) {
     else {
         cond.cm_pos = createVector(...molec_cond.cm_pos[i]);
         cond.cm_vel = createVector(...molec_cond.cm_vel[i]);
-        cond.ang = molec_cond.ang;
-        cond.omega = createVector(0, 0, molec_cond.omega);
+        cond.ang = molec_cond.ang[i];
+        cond.omega = createVector(0, 0, molec_cond.omega[i]);
     }
     return cond;
 }
@@ -77,4 +77,18 @@ function Bhaskara(a, b, c) {
         return null;
     else
         return [(-b + Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a), (-b - Math.sqrt(b ** 2 - 4 * a * c)) / (2 * a)];
+}
+
+function clone_atom(atom) {
+    return new Atom(createVector(atom.pos.x, atom.pos.y), createVector(atom.velocity.x, atom.velocity.y),
+        atom.radius, atom.m, "fake");
+}
+
+function clone_molec(molec) {
+    let atom1 = clone_atom(molec.atoms[0])
+    let atom2 = clone_atom(molec.atoms[1]);
+    let fake_molec = new Diatomic(atom1, atom2, molec.dist,
+        createVector(molec.cm_pos.x, molec.cm_pos.y),
+        createVector(molec.cm_vel.x, molec.cm_vel.y), molec.n[0].heading(), createVector(0, 0, molec.omega.z));
+    return fake_molec;
 }

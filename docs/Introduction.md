@@ -91,3 +91,12 @@ Contém uma série de funções auxiliares, usadas nos outros arquivos. Talvez d
     - eval_molec_init_cond(molec_cond, i):
     - project(v, a): projeta v em a. Ambos devem ser vetores do p5.
     - Bhaskara(a, b, c): retorna as soluções da equação de ax^2+bx+c=0 em um array, ou null se não houver soluções reais. Se houver raíz dupla, o array tem 2 elementos iguais. Necessária para a colisão superelástica de moléculas com a parede.
+
+
+    LÓGICA DA REAÇÃO
+    A2 -> A + A deltaH = Elig(A2)
+
+A + B -> AB deltaH = -Elig(AB)
+
+-------------
+A2 + B -> AB + A DELTA H Elig(A2) - Elig(AB)
