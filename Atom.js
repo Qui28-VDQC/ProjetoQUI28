@@ -74,6 +74,7 @@ function static_collide_mono_mono(atom1, atom2) {
     n.normalize()
     n.mult(atom1.radius + atom2.radius);
     atom2.pos = p5.Vector.add(atom1.pos, n);
+
     //evita que o atom2 seja empurrado pra dentro da parede
     let went_through_wall = false;
     if (atom2.pos.x > width - atom2.radius) {

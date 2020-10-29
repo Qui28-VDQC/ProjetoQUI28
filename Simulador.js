@@ -4,6 +4,7 @@ ser alteradas dependendo do propósito da simulação*/
 
 
 
+
 //lista de partículas "real"
 let particles = [];
 //lista de partículas a serem adicionadas a particles no fim do frame
@@ -14,6 +15,7 @@ let particles_rm = []; // partículas a remover
 
 function setup() {
     createCanvas(600, 600);
+
     //inicializar partículas
     //átomo X
     let condition;
@@ -40,6 +42,7 @@ function setup() {
     for (let i = 0; i < molecule_num.XY; i++) {
         condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
         particles.push(molec_XY(condition));
+
     }
 }
 
@@ -54,6 +57,7 @@ function draw() {
             if (a instanceof Atom && b instanceof Atom) {
                 if (a.pos.dist(b.pos) < a.radius + b.radius)
                     static_collide_mono_mono(a, b);
+
                 let deltaT = check_collision(a, b);
                 //se houver encontro
                 if (deltaT > 0 && deltaT < dt) {
@@ -71,9 +75,13 @@ function draw() {
                         particles_rm.push(i, j);
                         collided = false;
                     }
-                    if (collided)
+
+                    if (collided) {
                         collide(particles[i], particles[j]);
+                    }
                 }
+                if (a.pos.dist(b.pos) < a.radius + b.radius)
+                    static_collide(a, b);
             }
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
@@ -124,6 +132,17 @@ function draw() {
                         + a.m_total*a.cm_vel.magSq()/2 
                         + a.I*a.omega.magSq()/2 + a.E_int + a.E_lig;
                 //console.log(Ef-E0);
+            }
+            if ((a instanceof Atom) && (b instanceof Diatomic)) {
+                let aux = a;
+                a = b;
+                b = aux;
+            }
+            if ((a instanceof Diatomic) && (b instanceof Atom)) {
+                let v = check_collision_di_mono(a, b, dt);
+                if (v != null) {
+                    collide_di_mono(a, v, b);
+                }
             }
         }
     }

@@ -85,6 +85,7 @@ function Bhaskara(a, b, c) {
 function clone_atom(atom) {
     return new Atom(createVector(atom.pos.x, atom.pos.y), createVector(atom.velocity.x, atom.velocity.y),
         atom.radius, atom.m, atom.name);
+
 }
 
 function clone_molec(molec) {
