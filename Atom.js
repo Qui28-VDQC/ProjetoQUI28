@@ -10,9 +10,10 @@ class Atom {
         //usado p checar reação
         this.name = name;
     }
+    get_energy() {
+        return this.m*this.velocity.magSq()/2;
+    }
     draw(color) {
-        if (color_vel)
-            fill(color);
         circle(this.pos.x, this.pos.y, 2 * this.radius);
     }
     update(dt) {
@@ -73,4 +74,31 @@ function static_collide_mono_mono(atom1, atom2) {
     n.normalize()
     n.mult(atom1.radius + atom2.radius);
     atom2.pos = p5.Vector.add(atom1.pos, n);
+    //evita que o atom2 seja empurrado pra dentro da parede
+    let went_through_wall = false;
+    if (atom2.pos.x > width - atom2.radius) {
+        //reflete o que ele ultrapassou
+        atom2.pos.x = width - atom2.radius;
+        went_through_wall =true;
+        
+    }
+    else if (atom2.pos.x < atom2.radius) {
+        atom2.pos.x = atom2.radius;
+        went_through_wall =true;
+    }
+
+    if (atom2.pos.y > height - atom2.radius) {
+        atom2.pos.y = height;
+        went_through_wall =true;
+    }
+    else if (atom2.pos.y < atom2.radius) {
+        atom2.pos.y = atom2.radius;
+        went_through_wall =true;
+    }
+    if (went_through_wall) {
+        n = p5.Vector.sub(atom2.pos, atom1.pos);
+        n.normalize()
+        n.mult(atom1.radius + atom2.radius);
+        atom1.pos = p5.Vector.sub(atom2.pos, n);
+    }
 }

@@ -2,23 +2,8 @@
 Classe para moléculas diatômicas.
 Depende da classe de átomo individual.
 */
-const E_LIG_PADRAO = 500000;
-const E_ATIV_PADRAO = 300000;
 
-const energies = (bond, activation) => { return { BOND: bond, ACTV: activation }; };
 
-const E_table = (molec_name) => {
-    if (E_table_data[molec_name] == undefined) return false;
-    else return E_table_data[molec_name];
-}
-
-const E_table_data = {
-    //     XX: energies(0, 0),
-    //     YY: energies(0, 0),
-    //     XY: energies(500000, 300000),
-    //     YX: energies(500000, 300000)
-    // 
-}
 
 
 class Diatomic {
@@ -39,7 +24,8 @@ class Diatomic {
         //aponta do cm pro atom 1
         this.n = [p5.Vector.fromAngle(ang, this.d_CM[0]), p5.Vector.fromAngle(ang + PI, this.d_CM[1])];
         this.omega = omega;
-        this.E_lig = (typeof E_lig !== undefined) ? E_lig : E_LIG_PADRAO;
+        this.E_lig = E_lig;
+        //E_int é contada a partir do 0 (átomo isolado) - pode ficar negativa
         this.E_int = E_int;
         //colocar essas propriedades na função wall collide
         this.m_total = atom1.m + atom2.m;
@@ -81,42 +67,49 @@ class Diatomic {
         // CP_vel = cm_vel + omega x r
         const collided_point_vel = p5.Vector.add(this.cm_vel,
             p5.Vector.cross(this.omega, CM_point));
-        const m_tot = this.atoms[0].m + this.atoms[1].m;
-        const inertia = this.atoms[0].m * this.d_CM[0] ** 2 + this.atoms[1].m * this.d_CM[1] ** 2;
         //energia pré colisão
-        let E = m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
+        let E = this.m_total * this.cm_vel.magSq() / 2 + this.I * this.omega.magSq() / 2;
         //e é o coeficiente de restituição
-        let e;
+        let delta_p = normal;
+        
+        let e = 1;
         //----------------------------------------------------------------------------------------------
         //CÓDIGO TESTE (FOTO NA CONVERSA DO ZAP ZAP)
-        if (this.E_int > -this.E_lig) {
-            let fake_deltav = -(collided_point_vel.dot(normal)
-                / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia))) / m_tot;
-            fake_deltav = p5.Vector.mult(normal, fake_deltav);
-            let fake_delta_omega = -(collided_point_vel.dot(normal)
-                / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia))) / inertia;
-            fake_delta_omega = p5.Vector.cross(CM_point, normal).mult(fake_delta_omega);
-            let a = fake_deltav.magSq() * m_tot / 2 + fake_delta_omega.magSq() * inertia / 2;
-            let b = m_tot * this.cm_vel.dot(fake_deltav) + inertia * this.omega.dot(fake_delta_omega);
-            let c = -(this.E_int + this.E_lig) / 5; //TESTE
-            this.E_int -= (this.E_int + this.E_lig) / 5;
-            e = Bhaskara(a, b, c)[0] - 1;
-        }
-        else
-            e = 1;
+        // if (this.E_int > -this.E_lig) {
+        //     let fake_deltav = -(collided_point_vel.dot(normal)
+        //         / ((1 / this.m_total) + (p5.Vector.cross(CM_point, normal).magSq() / this.I))) / this.m_total;
+        //     fake_deltav = p5.Vector.mult(normal, fake_deltav);
+        //     let fake_delta_omega = -(collided_point_vel.dot(normal)
+        //         / ((1 / this.m_total) + (p5.Vector.cross(CM_point, normal).magSq() / this.I))) / this.I;
+        //     fake_delta_omega = p5.Vector.cross(CM_point, normal).mult(fake_delta_omega);
+        //     let a = fake_deltav.magSq() * this.m_total / 2 + fake_delta_omega.magSq() * this.I / 2;
+        //     let b = this.m_total * this.cm_vel.dot(fake_deltav) + this.I * this.omega.dot(fake_delta_omega);
+        //     let c = -(this.E_int + this.E_lig) / 5; //TESTE
+        //     this.E_int -= (this.E_int + this.E_lig) / 5;
+        //     e = Bhaskara(a, b, c)[0] - 1;
+        // }
+        // else
+        //     e = 1;
         //---------------------------------------------------------------------------------------------
-        let delta_p = normal;
-        //módulo do delta_p
         //−(1 + e) collided_point_vel · n / (1/ma + (CM_point × n)2 ⁄ Ia)
-        const j = -(1 + e) * collided_point_vel.dot(normal)
-            / ((1 / m_tot) + (p5.Vector.cross(CM_point, normal).magSq() / inertia));
+        //módulo do delta_p
+        const j = -2 * collided_point_vel.dot(normal)
+            / ((1 / this.m_total) + (p5.Vector.cross(CM_point, normal).magSq() / this.I));
         delta_p.mult(j);
-        //cm_vel = cm_vel + j *n* / m_tot
-        this.cm_vel.add(p5.Vector.div(delta_p, m_tot));
-        //omega = omega + (CM_point x j *n*) / inertia
-        this.omega.add(p5.Vector.div(p5.Vector.cross(CM_point, delta_p), inertia));
+        //cm_vel = cm_vel + j *n* / this.m_total
+        this.cm_vel.add(p5.Vector.div(delta_p, this.m_total));
+        //omega = omega + (CM_point x j *n*) / this.I
+        this.omega.add(p5.Vector.div(p5.Vector.cross(CM_point, delta_p), this.I));
         E *= -1;
-        E += m_tot * this.cm_vel.magSq() / 2 + inertia * this.omega.magSq() / 2;
+        E += this.m_total * this.cm_vel.magSq() / 2 + this.I * this.omega.magSq() / 2;
+    }
+    decompose() {
+        this.atom_vels();
+        this.atom_centers();
+        return this.atoms;
+    }
+    get_energy() {
+        return this.m_total*this.cm_vel.magSq()/2 + this.I*this.omega.magSq()/2 + this.E_int;
     }
     update(dt) {
         this.translate(dt);
@@ -258,10 +251,42 @@ function static_collide_di_di(molec1, i, molec2, j) {
     molec1.atom_centers();
     molec2.atom_centers()
     let n = p5.Vector.sub(molec2.atoms[j].pos, molec1.atoms[i].pos);
-    let overlap = molec1.atoms[i].radius + molec2.atoms[j].radius - n.mag()
+    let overlap = molec1.atoms[i].radius + molec2.atoms[j].radius - n.mag();
     n.normalize();
     //empurrar o CM da 2 pra não ter sobreposição
     molec2.cm_pos.add(n.mult(overlap));
+    //evitar que ultrapasse a parede
+
+    let went_through_wall = false;
+    for (let i_2 = 0; i_2 < 2; i_2++) {
+        if (molec2.atoms[i_2].pos.x > width - molec2.atoms[i_2].radius) {
+            //reflete o que ele ultrapassou
+            molec2.cm_pos.x = width - molec2.atoms[i_2].radius;
+            went_through_wall =true;
+            
+        }
+        else if (molec2.atoms[i_2].pos.x < molec2.atoms[i_2].radius) {
+            molec2.cm_pos.x = molec2.atoms[i_2].radius;
+            went_through_wall =true;
+        }
+
+        if (molec2.atoms[i_2].pos.y > height - molec2.atoms[i_2].radius) {
+            molec2.cm_pos.y = height;
+            went_through_wall =true;
+        }
+        else if (molec2.atoms[i_2].pos.y < molec2.atoms[i_2].radius) {
+            molec2.cm_pos.y = molec2.atoms[i_2].radius;
+            went_through_wall =true;
+        }
+    }
+    if (went_through_wall) {
+        n = p5.Vector.sub(molec2.atoms[j].pos, molec1.atoms[i].pos);
+        overlap = molec1.atoms[i].radius + molec2.atoms[j].radius - n.mag();
+        n.normalize()
+        n.mult(overlap);
+        molec1.cm_pos.sub(n);
+    }
+
 }
 
 function check_collision_di_mono(molec, atom, dt) {
@@ -330,5 +355,32 @@ function static_collide_mono_di(molec, i, atom) {
     n.normalize();
     n.mult(molec.atoms[i].radius + atom.radius);
     atom.pos = p5.Vector.add(molec.atoms[i].pos, n);
+    
+    //evita que o átomo ultrapasse a parede
+    let went_through_wall = false;
+    if (atom.pos.x > width - atom.radius) {
+        //reflete o que ele ultrapassou
+        atom.pos.x = width - atom.radius;
+        went_through_wall =true;
+        
+    }
+    else if (atom.pos.x < atom.radius) {
+        atom.pos.x = atom.radius;
+        went_through_wall =true;
+    }
 
+    if (atom.pos.y > height - atom.radius) {
+        atom.pos.y = height;
+        went_through_wall =true;
+    }
+    else if (atom.pos.y < atom.radius) {
+        atom.pos.y = atom.radius;
+        went_through_wall =true;
+    }
+    if (went_through_wall) {
+        n = p5.Vector.sub(atom.pos, molec.atoms[i].pos);
+        n.normalize()
+        n.mult(atom.radius + molec.atoms[i].radius);
+        molec.atoms[i].cm_pos = p5.Vector.sub(atom.pos, n);
+    }
 }
