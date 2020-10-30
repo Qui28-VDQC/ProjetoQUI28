@@ -1,7 +1,10 @@
 const PI = 3.141592653589793;
 const CL2 = "XX";
 const DECOMPOSE_TIME = Date.now() + 5 * 10 ** 3;
-let decomposed = false;
+const BEGIN_TEMP_INCREASE = Date.now() + 0.01 * 10 ** 3;
+const INTERVAL_TEMP_INCREASE = 10 * 2 ** 3;
+const TOTAL_DELTA_E = 1000000;
+let decomposed = true;
 //parâmetros de cada átomo
 const X = {
     radius: 100,
@@ -49,8 +52,8 @@ const E_table = (molec_name) => {
 
 const E_table_data = {
     //XX: energies(300000, 100000),
-    YY: energies(100000, 50000),
-    XY: energies(200000, 100000),
+    // YY: energies(100000, 50000),
+    // XY: energies(200000, 100000),
     //YX: energies(0, 300000)
 }
 //construtores de tipos de átomos específicos
@@ -75,16 +78,17 @@ const reacts = {
     X: {
         XX: false,
         XY: false,
-        YY: {
-            //função que cria o átomo final
-            atom_f: atom_Y,
-            //função que cria a molécula final
-            molec_f: molec_XY,
-            //tipo do átomo que vai ser liberado (checar)
-            type: "Y",
-            //energia de ativação da reação
-            ACTV: 100000
-        }
+        YY: false
+        // {
+        //     //função que cria o átomo final
+        //     atom_f: atom_Y,
+        //     //função que cria a molécula final
+        //     molec_f: molec_XY,
+        //     //tipo do átomo que vai ser liberado (checar)
+        //     type: "Y",
+        //     //energia de ativação da reação
+        //     ACTV: 100000
+        // }
     },
     Y: {
         XX: false,

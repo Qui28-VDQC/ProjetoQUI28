@@ -22,8 +22,8 @@ function lin_interpol(v1, v2, frac) {
 }
 
 function rand_pos(dist) {
-    return createVector(lin_interpol(0+dist, width-dist, Math.random()),
-        lin_interpol(0+dist, height-dist, Math.random()));
+    return createVector(lin_interpol(0 + dist, width - dist, Math.random()),
+        lin_interpol(0 + dist, height - dist, Math.random()));
 }
 
 function rand_vel(max_mag) {
@@ -107,4 +107,28 @@ function update_particles() {
     // reset
     particles_add = [];
     particles_rm = [];
+}
+
+function increase_temp(deltaE, particle) {
+    //deltaE é variação de energia por chamada da função
+    if (particle instanceof Atom) {
+        let curr_E = particle.get_energy() + deltaE;
+        particle.velocity.normalize().mult(Math.sqrt(2 * curr_E / particle.m));
+    }
+    else if (particle instanceof Diatomic) {
+        //mantém a razão de energia translacional e rotacional
+        let ratio = particle.m_total * particle.cm_vel.magSq() / (particle.I * particle.omega.magSq());
+        let kin_E = particle.m_total * particle.cm_vel.magSq() / 2
+            + particle.I * particle.omega.magSq() / 2 + deltaE;
+        particle.cm_vel.normalize().mult(Math.sqrt(2 * kin_E * (ratio / (1 + ratio)) / particle.m_total));
+        particle.omega.normalize().mult(Math.sqrt(2 * kin_E * (1 / (1 + ratio)) / particle.I));
+    }
+
+}
+
+function get_system_energy(part_list) {
+    let E = 0;
+    for (let part of part_list)
+        E += part.get_energy();
+    return E;
 }

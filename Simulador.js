@@ -3,7 +3,7 @@ outros arquivos e de fato executa. Variáveis do começo devem
 ser alteradas dependendo do propósito da simulação*/
 
 
-
+let E0;
 
 //lista de partículas "real"
 let particles = [];
@@ -42,8 +42,8 @@ function setup() {
     for (let i = 0; i < molecule_num.XY; i++) {
         condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
         particles.push(molec_XY(condition));
-
     }
+    E0 = get_system_energy(particles);
 }
 
 
@@ -81,7 +81,7 @@ function draw() {
                     }
                 }
                 if (a.pos.dist(b.pos) < a.radius + b.radius)
-                    static_collide(a, b);
+                    static_collide_mono_mono(a, b);
             }
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
@@ -105,9 +105,6 @@ function draw() {
             }
             if ((a instanceof Diatomic) && (b instanceof Atom)) {
                 //v é o índice do átomo que colidiu
-                let E0 = b.m*b.velocity.magSq()/2 
-                        + a.m_total*a.cm_vel.magSq()/2 
-                        + a.I*a.omega.magSq()/2 + a.E_int + a.E_lig;
                 let v = check_collision_di_mono(a, b, dt);
                 if (v != null) {
                     static_collide_mono_di(a, v, b);
@@ -115,7 +112,7 @@ function draw() {
                     //se são do tipo certo - basta que exista
                     if (reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
                         == a.atoms[v].name && check_energy(b, a, v)) {
-                        
+
                         let new_part = react_mono_di(b, a, v);
 
                         particles_rm.push(i, j);
@@ -128,10 +125,6 @@ function draw() {
                             static_collide_mono_di(a, v, b);
                     }
                 }
-                let Ef = b.m*b.velocity.magSq()/2 
-                        + a.m_total*a.cm_vel.magSq()/2 
-                        + a.I*a.omega.magSq()/2 + a.E_int + a.E_lig;
-                //console.log(Ef-E0);
             }
             if ((a instanceof Atom) && (b instanceof Diatomic)) {
                 let aux = a;
@@ -150,29 +143,33 @@ function draw() {
 
     update_particles();
 
-    let E = 0;
     let new_atoms;
     let a;
     for (let i = 0; i < particles.length; i++) {
         a = particles[i];
         //update da física
+        //faz a decomposição, se precisar
         if (!decomposed && Date.now() > DECOMPOSE_TIME) {
-            if (a instanceof Diatomic && a.atoms[0].name+a.atoms[1].name == CL2) {
+            if (a instanceof Diatomic && a.atoms[0].name + a.atoms[1].name == CL2) {
                 new_atoms = a.decompose();
                 particles_add.push(...new_atoms);
                 particles_rm.push(i);
             }
             decomposed = true;
         }
+        //faz o aumento de temperatura
+        if (Date.now() > BEGIN_TEMP_INCREASE
+            && get_system_energy(particles) - E0 < TOTAL_DELTA_E) {
+            increase_temp(TOTAL_DELTA_E / INTERVAL_TEMP_INCREASE, a);
+        }
         a.update(dt);
         //desenhar
         a.draw();
-        E += a.get_energy();
     }
     //console.log(E);
 
     //atualizar lista de partículas
 
     update_particles();
-    
+
 }
