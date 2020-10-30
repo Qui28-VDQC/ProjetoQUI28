@@ -3,30 +3,30 @@ const color_vel = false;
 //parâmetros de cada átomo
 const X = {
     radius: 100,
-    mass: 4
+    mass: 40
 }
 
 const Y = {
     radius: 50,
-    mass: 1
+    mass: 10
 }
 
 //quantidades de cada partícula
 let atom_num = {
-    X: 0,
-    Y: 20
+    X: 5,
+    Y: 0
 }
 let molecule_num = {
     XX: 0,
-    YY: 0,
+    YY: 1,
     XY: 0
 }
 
 //posicoes iniciais
 const atom_initial_conditions = {
     X: {
-        pos: [[100, 300]],
-        vel: [[50, 0]]
+        pos: Array(atom_num.X).fill("random"),
+        vel: Array(atom_num.X).fill(100)
     },
     Y: {
         pos: Array(atom_num.Y).fill("random"),
