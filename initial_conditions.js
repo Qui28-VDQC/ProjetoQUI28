@@ -1,4 +1,4 @@
-const PI = 3.141592653589793;
+const PI = Math.PI;
 const CL2 = "XX";
 const DECOMPOSE_TIME = Date.now() + 5 * 10 ** 3;
 const BEGIN_TEMP_INCREASE = Date.now() + 0.01 * 10 ** 3;
