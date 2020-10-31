@@ -8,17 +8,22 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
+    "@types/lodash": "^4.14.164",
     "babel-plugin-transform-gl-matrix": "^0.6.0",
     "gl-matrix": "^3.3.0",
     "lodash": "^4.17.20",
     "p5": "^1.1.9",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "source-map-loader": "^1.1.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",
     "@babel/core": "^7.12.3",
-    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-typescript": "^7.12.1",
+    "@tsconfig/recommended": "^1.0.1",
     "babel-loader": "^8.1.0",
+    "ts-loader": "^8.0.7",
+    "typescript": "^4.0.5",
     "webpack": "^5.3.2",
     "webpack-cli": "^4.1.0"
   },

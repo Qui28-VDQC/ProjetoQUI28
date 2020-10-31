@@ -7,6 +7,12 @@ module.exports = {
   module: {
     rules: [
       {
+        //Typescript
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
         //Babel
         test: /\.m?js$/,
         exclude: [
@@ -18,23 +24,22 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'],
+            presets: ['@babel/preset-typescript'],
             plugins: ["@babel/transform-gl-matrix", {
                 "glMatrixArray": false
               }]
           }
         }
       },
-      {
-        //Typescript
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
+      { 
+        // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+        test: /\.js$/, 
+        loader: "source-map-loader" 
       }
     ],
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: [ "", ".webpack.js", ".web.js", ".ts", ".tsx", ".js" ],
   },
   output: {
     filename: 'bundle.js',
