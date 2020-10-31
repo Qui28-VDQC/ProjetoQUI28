@@ -19,6 +19,33 @@ $ npm run build
 
 e, com isso, seus arquivos finais vão ficar em `dist/`. Daí é só abrir `dist/index.html` no seu navegador!
 
+Ferramentas:
+ - Node
+ - npm
+ - Babel
+ - Typescript
+ - webpack
+
+## Observações
+
+Por padrão, a configuração do webpack está em modo de **desenvolvimento**, **para facilitar a depuração/debugging**, principalmente através do [source map](https://webpack.js.org/guides/development/#using-source-maps).
+
+Isso produzirá arquivos `.js` muito grandes! Então, assim que você for fazer uma versão final, ou simplesmente quando quiser aumentar a performance,
+remova as seguintes linhas:
+
+`webpack.config.js`
+
+```js
+mode: 'development', //Mude para mode: 'production' ou remova esta linha
+devtool: 'inline-source-map', //Remova esta linha
+```
+
+`tsconfig.json`
+
+```json
+"sourceMap": true, //Remova esta linha
+```
+
 ## Avisos
 
 ### Cuidado ao adicionar arquivos ao repositório.
