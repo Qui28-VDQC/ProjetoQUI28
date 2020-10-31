@@ -80,3 +80,5 @@ function react_mono_mono(atom1: Atom, atom2: Atom, E_bond: number, E_activation:
   return new Diatomic(atom1, atom2, atom1.radius + atom2.radius,
     CM, V_CM, theta, omega, E_table(atom1.name+atom2.name).BOND, E_collision);
 }
+
+export {test_mono_mono, react_mono_mono}

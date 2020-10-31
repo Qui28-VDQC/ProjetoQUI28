@@ -20,6 +20,8 @@ import {
     collide_di_di, collide_di_mono
 } from './Diatomic.js';
 
+import {test_mono_mono, react_mono_mono} from './reacao_mono'
+
 import * as hpf from './helper_funcs.js';
 //import p5 from 'p5';
 
@@ -63,9 +65,6 @@ function setup() {
         condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XY, i);
         particles.push(inc.molec_XY(condition));
     }
-
-
-
     E0 = hpf.get_system_energy(particles);
 }
 
