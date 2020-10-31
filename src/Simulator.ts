@@ -23,18 +23,18 @@ import {
 import * as hpf from './helper_funcs.js';
 //import p5 from 'p5';
 
-let E0;
+let E0: number;
 
 //lista de partículas "real"
-let particles = [];
+let particles: (Atom | Diatomic)[] = [];
 //lista de partículas a serem adicionadas a particles no fim do frame
-let particles_add = [];
-let particles_rm = []; // partículas a remover
+let particles_add: (Atom | Diatomic)[] = [];
+let particles_rm: number[] = []; // partículas a remover
 let dt = 0.0;
 
 
 function setup() {
-    createCanvas(600, 600);
+    //createCanvas(600, 600);
 
     //inicializar partículas
     //átomo X
@@ -69,10 +69,13 @@ function setup() {
     E0 = hpf.get_system_energy(particles);
 }
 
+let lastLoop: number = 0.0;
+let thisLoop: number = 0.1;
 
 function draw() {
-    background(150);
-    dt = min(1, 1 / frameRate());
+    thisLoop = Date.now();
+    dt = thisLoop - lastLoop;
+    lastLoop = thisLoop;
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
             let a = particles[i];
