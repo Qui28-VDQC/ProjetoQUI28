@@ -1,9 +1,15 @@
 //arquivo com a classe do átomo isolado, check de colisão entre átomos isolados
 //já incluso no run.html
-
+import { vec2 } from "gl-matrix"
+import { Drawing } from './Drawing'
 
 class Atom {
-    constructor(pos, velocity, radius, mass, name) {
+    public pos;
+    public velocity;
+    public radius;
+    public m;
+    public name;
+    constructor(pos: vec2, velocity: vec2, radius: number, mass: number, name: string) {
         this.pos = pos;
         this.velocity = velocity;
         this.radius = radius;
@@ -12,43 +18,51 @@ class Atom {
         this.name = name;
     }
     get_energy() {
-        return this.m*this.velocity.magSq()/2;
+        return 0.5*this.m*vec2.sqrLen(this.velocity);
     }
-    draw(color) {
-        circle(this.pos.x, this.pos.y, 2 * this.radius);
+    draw(draw: Drawing) {
+        draw.circle(this.pos, 2 * this.radius);
     }
-    update(dt) {
-        this.pos.add(p5.Vector.mult(this.velocity, dt))
-        if (this.pos.x > width - this.radius) {
-            this.velocity.x *= -1;
-            //reflete o que ele ultrapassou
-            this.pos.x = width - this.radius - (this.pos.x - (width - this.radius));
-        }
-        else if (this.pos.x < this.radius) {
-            this.velocity.x *= -1;
-            this.pos.x = this.radius - (this.pos.x - this.radius);
-        }
+    update(dt: number) {
+        vec2.add(this.pos, this.pos, [dt * this.velocity[0], dt * this.velocity[1]]);
+        // if (this.pos.x > width - this.radius) {
+        //     this.velocity.x *= -1;
+        //     //reflete o que ele ultrapassou
+        //     this.pos.x = width - this.radius - (this.pos.x - (width - this.radius));
+        // }
+        // else if (this.pos.x < this.radius) {
+        //     this.velocity.x *= -1;
+        //     this.pos.x = this.radius - (this.pos.x - this.radius);
+        // }
 
-        if (this.pos.y > height - this.radius) {
-            this.velocity.y *= -1;
-            this.pos.y = height - this.radius - (this.pos.y - (height - this.radius));
-        }
-        else if (this.pos.y < this.radius) {
-            this.velocity.y *= -1;
-            this.pos.y = this.radius - (this.pos.y - this.radius);
-        }
+        // if (this.pos.y > height - this.radius) {
+        //     this.velocity.y *= -1;
+        //     this.pos.y = height - this.radius - (this.pos.y - (height - this.radius));
+        // }
+        // else if (this.pos.y < this.radius) {
+        //     this.velocity.y *= -1;
+        //     this.pos.y = this.radius - (this.pos.y - this.radius);
+        // }
     }
 }
 
-function check_collision(atom1, atom2) {
+function check_collision(atom1: Atom, atom2: Atom) {
+    //TODO: Rename this function
+    //Returns time until two atoms will collide
     //checagem explicada no drive dos livros: COlisão?
     //subtrai, sem alterar nenhum
-    let dpos = p5.Vector.sub(atom1.pos, atom2.pos)
-    let deltaV = p5.Vector.sub(atom1.velocity, atom2.velocity);
-    let beta = -p5.Vector.dot(deltaV, dpos) / deltaV.mag();
-    let deltaT = beta - sqrt(sq(atom1.radius + atom2.radius) - sq(dpos.mag()) + sq(beta));
-    deltaT /= deltaV.mag();
-    return deltaT
+    let r: vec2 = vec2.create();
+    vec2.sub(r, atom1.pos, atom2.pos);
+    let V_rel: vec2 = vec2.create();
+    vec2.sub(V_rel, atom1.velocity, atom2.velocity);
+    //let V_rel_dir: vec2 = vec2.create();
+    //vec2.normalize(V_rel_dir, V_rel);
+    let dotP = vec2.dot(V_rel, r);
+    let sqrLen_V_rel = vec2.sqrLen(V_rel);
+    let beta = dotP / sqrLen_V_rel; //-p5.Vector.dot(V_rel, dpos) / V_rel.mag();
+    let deltaT = beta - Math.sqrt(dotP*dotP - sqrLen_V_rel*(vec2.dot(r, r) - (atom1.radius + atom2.radius)**2));
+    //let deltaT = beta - sqrt(sq(atom1.radius + atom2.radius) - sq(dpos.mag()) + sq(beta));
+    return deltaT;
 }
 
 function collide(atom1, atom2) {
