@@ -4,8 +4,7 @@
 Esta branch é dedicada a **refatorar** o código, deixando essa reta final de desenvolvimento ainda mais rápida e robusta.
 
 Para isso, o projeto foi transformado em um **pacote** do Node.js. Ele é empacotado com o webpack, permitindo modularidade no código(através da sintaxe padronizada por ES6).
-Além disso, o compilador babel permite usar uma sintaxe mais fluida para desenvolver(principalmente em se tratando
- de matemática vetorial, usando `gl-matrix` e `babel-plugin-transform-gl-matrix`)
+Além disso, o compilador do typescript faz uma análise estática dos tipos das variáveis. Assim, fica garantido que erros relacionados a tipos não aconteçam.
 
 Para desenvolver, você precisa de:
  - [Node.js](https://nodejs.org/en/)
@@ -22,7 +21,6 @@ e, com isso, seus arquivos finais vão ficar em `dist/`. Daí é só abrir `dist
 Ferramentas:
  - Node
  - npm
- - Babel
  - Typescript
  - webpack
 
