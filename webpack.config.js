@@ -1,17 +1,22 @@
 const path = require('path');
 
-module: {
+module.exports = {
+  mode: 'development', //DON'T USE THIS IN PRODUCTION!
+  devtool: 'inline-source-map', //DON'T USE THIS IN PRODUCTION!
+  entry: './src/index.ts',
+  module: {
     rules: [
       {
+        //Babel
         test: /\.m?js$/,
-        exclude: /(node_modules|bower_components)/,
+        exclude: [
+          //Comment: \\ for Windows, \/ for Mac OS and Linux
+          /(node_modules|bower_components)/,          
+          /node_modules[\\\/]core-js/,
+          /node_modules[\\\/]webpack[\\\/]buildin/,
+        ],
         use: {
           loader: 'babel-loader',
-          exclude: [
-            //Comment: \\ for Windows, \/ for Mac OS and Linux
-            /node_modules[\\\/]core-js/,
-            /node_modules[\\\/]webpack[\\\/]buildin/,
-          ],
           options: {
             presets: ['@babel/preset-env'],
             plugins: ["@babel/transform-gl-matrix", {
@@ -19,14 +24,20 @@ module: {
               }]
           }
         }
+      },
+      {
+        //Typescript
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
       }
-    ]
+    ],
+  },
+  resolve: {
+    extensions: [ '.tsx', '.ts', '.js' ],
+  },
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
 };
-
-module.exports = {
-    entry: './src/index.js',
-    output: {
-      filename: 'main.js',
-      path: path.resolve(__dirname, 'dist'),
-    },
-  };
