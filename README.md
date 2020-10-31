@@ -1,16 +1,35 @@
 # Projeto-QUI-28
-Cuidado ao adicionar arquivos ao repositório.
-=============================================
 
-NÃO USE GIT ADD ., GIT COMMIT -A, etc.
---------------------------------------
+## Novidades
+Esta branch é dedicada a **refatorar** o código, deixando essa reta final de desenvolvimento ainda mais rápida e robusta.
+
+Para isso, o projeto foi transformado em um **pacote** do Node.js. Ele é empacotado com o webpack, permitindo modularidade no código(através da sintaxe padronizada por ES6).
+Além disso, o compilador babel permite usar uma sintaxe mais fluida para desenvolver(principalmente em se tratando
+ de matemática vetorial, usando `gl-matrix` e `babel-plugin-transform-gl-matrix`)
+
+Para desenvolver, você precisa de:
+ - [Node.js](https://nodejs.org/en/)
+ - [npm](https://www.npmjs.com/)
+
+Assim que clonar o repositório, você só precisa rodar 
+```shell script
+$ npm ci
+$ npm run build
+```
+
+e, com isso, seus arquivos finais vão ficar em `dist/`. Daí é só abrir `dist/index.html` no seu navegador!
+
+## Avisos
+
+### Cuidado ao adicionar arquivos ao repositório.
+
+### NÃO USE GIT ADD ., GIT COMMIT -A, etc.
 
 Dê um git add em cada arquivo (se tiver vários use git add -i). Isso vai evitar que o repositório fique cheio de lixo. 
 Lembre que não tem como apagar o lixo do repositório, ele sempre vai ficar no histórico, então enviar binários por 
 exemplo é estritamente proibido.
 
-NÃO FAÇA COMMITS NA MASTER
-============================================
+### NÃO FAÇA COMMITS NA MASTER
 
 A branch principal de desenvolvimento é a **master**, onde ocorrem as integrações entre feature branches que desenvolvem 
 features específicas. Dessa maneira, **só são permitidos merges na master por pull requests**.
@@ -34,4 +53,8 @@ identificar a função da branch e pode ser:
 * feature-atomic-bohr: Branch para implementar átomos segundo o modelo de Bohr.
 * document-simulation-singleton: Branch para documentar a classe do simulador.
 * other-cute-cat-pics: Branch com algum propósito carteado que não se encaixe nos anteriores. **Evite esse prefixo se possível**. 
+
+
+
+
 
