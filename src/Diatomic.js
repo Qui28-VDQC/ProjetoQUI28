@@ -2,7 +2,7 @@
 Classe para moléculas diatômicas.
 Depende da classe de átomo individual.
 */
-import { clone_molec, clone_atom } from './helper_funcs.js'
+import { clone_molec, clone_atom } from './helper_funcs'
 
 //import { Atom } from './Atom.js'
 
