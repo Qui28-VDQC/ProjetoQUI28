@@ -1,6 +1,8 @@
 //arquivo com a classe do átomo isolado, check de colisão entre átomos isolados
 //já incluso no run.html
 
+
+
 class Atom {
     constructor(pos, velocity, radius, mass, name) {
         this.pos = pos;
