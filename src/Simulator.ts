@@ -3,28 +3,35 @@
 outros arquivos e de fato executa. Variáveis do começo devem
 ser alteradas dependendo do propósito da simulação*/
 //const PI = Math.PI;
+
+
+//import './Diatomic.js'
+import * as inc from './initial_conditions';
+import { Atom, X, Y, check_collision, 
+    collide, static_collide_mono_mono } from './Atom';
+import {
+    Diatomic, check_collision_di_di, check_collision_di_mono, 
+    static_collide_di_di, static_collide_mono_di,
+    collide_di_di, collide_di_mono
+} from './Diatomic';
+
+import {test_mono_mono, react_mono_mono} from './reacao_mono';
+
+import { vec2 } from 'gl-matrix';
+
+import { Drawing } from './Drawing'
+ 
+import * as hpf from './helper_funcs';
+//import p5 from 'p5';
+
+
+
 const CL2 = "XX";
 const DECOMPOSE_TIME = Date.now() + 5 * 10 ** 3;
 const BEGIN_TEMP_INCREASE = Date.now() + 0.01 * 10 ** 3;
 const INTERVAL_TEMP_INCREASE = 10 * 2 ** 3;
 const TOTAL_DELTA_E = 1000000;
 let decomposed = true;
-
-//import './Diatomic.js'
-import * as inc from './initial_conditions.js';
-import { Atom, check_collision, 
-    collide, static_collide_mono_mono } from './Atom.js';
-import {
-    Diatomic, check_collision_di_di, check_collision_di_mono, 
-    static_collide_di_di, static_collide_mono_di,
-    collide_di_di, collide_di_mono
-} from './Diatomic.js';
-
-import {test_mono_mono, react_mono_mono} from './reacao_mono'
-
-import * as hpf from './helper_funcs.js';
-//import p5 from 'p5';
-
 let E0: number;
 
 //lista de partículas "real"
@@ -34,44 +41,57 @@ let particles_add: (Atom | Diatomic)[] = [];
 let particles_rm: number[] = []; // partículas a remover
 let dt = 0.0;
 
+function random_pos() {
+    let p = vec2.fromValues(Math.random()*600, Math.random()*600);
+    return p;
+}
+
+function random_vel() {
+    let v = vec2.fromValues(Math.random()*300 - 150, Math.random()*300 - 150);
+    return v;
+}
 
 function setup() {
     //createCanvas(600, 600);
 
     //inicializar partículas
     //átomo X
-    let condition;
-    for (let i = 0; i < inc.atom_num.X; i++) {
-        condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.X, i, particles, inc.X.radius);
-        particles.push(inc.atom_X(condition));
-    }
-    //átomo Y
-    for (let i = 0; i < inc.atom_num.Y; i++) {
-        condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.Y, i, particles, inc.Y.radius);
-        particles.push(inc.atom_Y(condition));
-    }
-    //molécula XX
-    for (let i = 0; i < inc.molecule_num.XX; i++) {
-        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XX, i);
-        particles.push(inc.molec_XX(condition));
-    }
-    //molécula YY
-    for (let i = 0; i < inc.molecule_num.YY; i++) {
-        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.YY, i);
-        particles.push(inc.molec_YY(condition));
-    }
-    //molécula XY
-    for (let i = 0; i < inc.molecule_num.XY; i++) {
-        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XY, i);
-        particles.push(inc.molec_XY(condition));
-    }
+    // let condition;
+    // for (let i = 0; i < inc.atom_num.X; i++) {
+    //     condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.X, i, particles, X.radius);
+    //     particles.push(inc.atom_X(condition));
+    // }
+    // //átomo Y
+    // for (let i = 0; i < inc.atom_num.Y; i++) {
+    //     condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.Y, i, particles, Y.radius);
+    //     particles.push(inc.atom_Y(condition));
+    // }
+    // //molécula XX
+    // for (let i = 0; i < inc.molecule_num.XX; i++) {
+    //     condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XX, i);
+    //     particles.push(inc.molec_XX(condition));
+    // }
+    // //molécula YY
+    // for (let i = 0; i < inc.molecule_num.YY; i++) {
+    //     condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.YY, i);
+    //     particles.push(inc.molec_YY(condition));
+    // }
+    // //molécula XY
+    // for (let i = 0; i < inc.molecule_num.XY; i++) {
+    //     condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XY, i);
+    //     particles.push(inc.molec_XY(condition));
+    // }
+    let a1: Atom = new Atom(random_pos(), random_vel(), X.radius, X.mass, "X");
+    let a2: Atom = new Atom(random_pos(), random_vel(), Y.radius, Y.mass, "Y");
+    particles.push(a1);
+    particles.push(a2);
     E0 = hpf.get_system_energy(particles);
 }
 
 let lastLoop: number = 0.0;
 let thisLoop: number = 0.1;
 
-function draw() {
+function draw(_draw: Drawing) {
     thisLoop = Date.now();
     dt = thisLoop - lastLoop;
     lastLoop = thisLoop;
@@ -80,7 +100,7 @@ function draw() {
             let a = particles[i];
             let b = particles[j];
             if (a instanceof Atom && b instanceof Atom) {
-                if (a.pos.dist(b.pos) < a.radius + b.radius)
+                if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
                     static_collide_mono_mono(a, b);
 
                 let deltaT = check_collision(a, b);
@@ -90,10 +110,10 @@ function draw() {
                     //se os átomos forem do tipo que reage
                     //esse código depende da ordenação de partículas!!!
                     const molec_name = a.name + b.name;
-                    if (inc.E_table(molec_name)
-                        && test_mono_mono(a, b, inc.E_table(molec_name).BOND, inc.E_table(molec_name).ACTV)) {
+                    if (inc.E_table[molec_name]
+                        && test_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV)) {
                         //se tem energia suficiente pra reagir...
-                        let molec = react_mono_mono(a, b, inc.E_table(molec_name).BOND, inc.E_table(molec_name).ACTV);
+                        let molec = react_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV);
                         //há reação, excluir átomos
                         //console.log(molec.E_int);
                         particles_add.push(molec)
@@ -105,12 +125,12 @@ function draw() {
                         collide(particles[i], particles[j]);
                     }
                 }
-                if (a.pos.dist(b.pos) < a.radius + b.radius)
+                if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
                     static_collide_mono_mono(a, b);
             }
             if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
                 //Colisão entre diatômicas
-                v = check_collision_di_di(a, b, dt);
+                let v = check_collision_di_di(a, b, dt);
                 if (v != null) {
                     static_collide_di_di(a, v[0], b, v[1]);
                     collide_di_di(a, v[0], b, v[1]);
@@ -118,7 +138,7 @@ function draw() {
                 //checa sobreposição
                 for (let i_a = 0; i_a < 2; i_a++) {
                     for (let i_b = 0; i_b < 2; i_b++) {
-                        if (a.atoms[i_a].pos.dist(b.atoms[i_b].pos) < a.atoms[i_a].radius + b.atoms[i_b].radius)
+                        if (vec2.dist(a.atoms[i_a], b.atoms[i_b].pos) < a.atoms[i_a].radius + b.atoms[i_b].radius)
                             static_collide_di_di(a, i_a, b, i_b);
                     }
                 }
@@ -135,8 +155,8 @@ function draw() {
                     static_collide_mono_di(a, v, b);
                     //ver se há reação
                     //se são do tipo certo - basta que exista
-                    if (inc.reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
-                        == a.atoms[v].name && check_energy(b, a, v)) {
+                    if (inc.reacts[b.name][a.atoms[0].name + a.atoms[1].name]/*.type
+                        == a.atoms[v].name*/ && check_energy(b, a, v)) {
 
                         let new_part = react_mono_di(b, a, v);
 
@@ -146,7 +166,7 @@ function draw() {
                     } else
                         collide_di_mono(a, v, b);
                     for (let i_a = 0; i_a < 2; i_a++) {
-                        if (b.pos.dist(a.atoms[i_a].pos) < b.radius + a.atoms[i_a].radius)
+                        if (vec2.dist(b.pos, a.atoms[i_a].pos) < b.radius + a.atoms[i_a].radius)
                             static_collide_mono_di(a, v, b);
                     }
                 }
@@ -189,7 +209,7 @@ function draw() {
         }
         a.update(dt);
         //desenhar
-        a.draw();
+        a.draw(_draw);
     }
     //console.log(E);
 
@@ -210,6 +230,8 @@ function update_particles() {
     particles_rm = [];
 }
 
-//THIS IS A HACK!!
-window.setup = setup;
-window.draw = draw;
+// //THIS IS A HACK!!
+// window.setup = setup;
+// window.draw = draw;
+
+export {particles, setup, draw}

@@ -1,7 +1,20 @@
 //arquivo com a classe do átomo isolado, check de colisão entre átomos isolados
 //já incluso no run.html
 import { vec2 } from "gl-matrix"
+import { Diatomic } from "./Diatomic";
 import { Drawing } from './Drawing'
+
+//parâmetros de cada átomo
+export const X = {
+    radius: 100,
+    mass: 40
+}
+
+export const Y = {
+    radius: 50,
+    mass: 10
+}
+
 
 class Atom {
     public pos;
@@ -65,58 +78,66 @@ function check_collision(atom1: Atom, atom2: Atom) {
     return deltaT;
 }
 
-function collide(atom1, atom2) {
-    //testar let n = p5.Vector.normalize(sub...)
-    let n = p5.Vector.sub(atom1.pos, atom2.pos);
-    n.normalize()
-    /*atom1.x += 0.5*n.x;
-    atom1.y += 0.5*n.y;
-    b.x -= 0.5*n.x;
-    atom2.y -= 0.5*n.y;*/
-    //Velocities in relationship to the normal axis
-    let va_n = p5.Vector.dot(atom1.velocity, n);
-    let vb_n = p5.Vector.dot(atom2.velocity, n);
-    //Scalars
-    let a_esc = ((atom1.m - atom2.m) * va_n + 2 * atom2.m * vb_n) / (atom1.m + atom2.m);
-    let b_esc = (2 * atom1.m * va_n + (atom2.m - atom1.m) * vb_n) / (atom1.m + atom2.m);
-    //Final velocities
-    atom1.velocity.add(p5.Vector.mult(n, a_esc - va_n));
-    atom2.velocity.add(p5.Vector.mult(n, b_esc - vb_n));
+function collide(atom1: Atom | Diatomic, atom2: Atom | Diatomic) {
+    // //testar let n = p5.Vector.normalize(sub...)
+    // let n = p5.Vector.sub(atom1.pos, atom2.pos);
+    // n.normalize()
+    // /*atom1.x += 0.5*n.x;
+    // atom1.y += 0.5*n.y;
+    // b.x -= 0.5*n.x;
+    // atom2.y -= 0.5*n.y;*/
+    // //Velocities in relationship to the normal axis
+    // let va_n = p5.Vector.dot(atom1.velocity, n);
+    // let vb_n = p5.Vector.dot(atom2.velocity, n);
+    // //Scalars
+    // let a_esc = ((atom1.m - atom2.m) * va_n + 2 * atom2.m * vb_n) / (atom1.m + atom2.m);
+    // let b_esc = (2 * atom1.m * va_n + (atom2.m - atom1.m) * vb_n) / (atom1.m + atom2.m);
+    // //Final velocities
+    // atom1.velocity.add(p5.Vector.mult(n, a_esc - va_n));
+    // atom2.velocity.add(p5.Vector.mult(n, b_esc - vb_n));
 }
 
-function static_collide_mono_mono(atom1, atom2) {
-    let n = p5.Vector.sub(atom2.pos, atom1.pos);
-    n.normalize()
-    n.mult(atom1.radius + atom2.radius);
-    atom2.pos = p5.Vector.add(atom1.pos, n);
+function static_collide_mono_mono(atom1: Atom, atom2: Atom) {
+    //TODO: Document this function
+    let r: vec2 = vec2.create();
+    vec2.sub(r, atom2.pos, atom1.pos);
+    vec2.normalize(r, r);
+    vec2.scaleAndAdd(r, atom1.pos, r, atom1.radius + atom2.radius);
+    atom2.pos = r;
+
+    //TODO: Remove old code
+    // let n = p5.Vector.sub(atom2.pos, atom1.pos);
+    // n.normalize()
+    // n.mult(atom1.radius + atom2.radius);
+    // atom2.pos = p5.Vector.add(atom1.pos, n);
 
     //evita que o atom2 seja empurrado pra dentro da parede
-    let went_through_wall = false;
-    if (atom2.pos.x > width - atom2.radius) {
-        //reflete o que ele ultrapassou
-        atom2.pos.x = width - atom2.radius;
-        went_through_wall =true;
+    // let went_through_wall = false;
+    // if (atom2.pos.x > width - atom2.radius) {
+    //     //reflete o que ele ultrapassou
+    //     atom2.pos.x = width - atom2.radius;
+    //     went_through_wall =true;
         
-    }
-    else if (atom2.pos.x < atom2.radius) {
-        atom2.pos.x = atom2.radius;
-        went_through_wall =true;
-    }
+    // }
+    // else if (atom2.pos.x < atom2.radius) {
+    //     atom2.pos.x = atom2.radius;
+    //     went_through_wall =true;
+    // }
 
-    if (atom2.pos.y > height - atom2.radius) {
-        atom2.pos.y = height;
-        went_through_wall =true;
-    }
-    else if (atom2.pos.y < atom2.radius) {
-        atom2.pos.y = atom2.radius;
-        went_through_wall =true;
-    }
-    if (went_through_wall) {
-        n = p5.Vector.sub(atom2.pos, atom1.pos);
-        n.normalize()
-        n.mult(atom1.radius + atom2.radius);
-        atom1.pos = p5.Vector.sub(atom2.pos, n);
-    }
+    // if (atom2.pos.y > height - atom2.radius) {
+    //     atom2.pos.y = height;
+    //     went_through_wall =true;
+    // }
+    // else if (atom2.pos.y < atom2.radius) {
+    //     atom2.pos.y = atom2.radius;
+    //     went_through_wall =true;
+    // }
+    // if (went_through_wall) {
+    //     n = p5.Vector.sub(atom2.pos, atom1.pos);
+    //     n.normalize()
+    //     n.mult(atom1.radius + atom2.radius);
+    //     atom1.pos = p5.Vector.sub(atom2.pos, n);
+    // }
 }
 
 export {
