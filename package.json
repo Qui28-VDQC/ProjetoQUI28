@@ -1,6 +1,6 @@
 {
   "name": "projetoqui28",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A Simulator of bimolecular gas reactions",
   "private": true,
   "directories": {
