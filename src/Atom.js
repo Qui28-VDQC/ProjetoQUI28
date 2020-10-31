@@ -2,7 +2,6 @@
 //já incluso no run.html
 
 
-
 class Atom {
     constructor(pos, velocity, radius, mass, name) {
         this.pos = pos;
@@ -104,4 +103,8 @@ function static_collide_mono_mono(atom1, atom2) {
         n.mult(atom1.radius + atom2.radius);
         atom1.pos = p5.Vector.sub(atom2.pos, n);
     }
+}
+
+export {
+    check_collision, collide, static_collide_mono_mono, Atom
 }

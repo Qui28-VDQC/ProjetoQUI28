@@ -1,11 +1,15 @@
-const zero_cond = () => {
+"use strict"
+import { Atom } from './Atom.js'
+import { Diatomic } from './Diatomic.js'
+
+export const zero_cond = () => {
     return {
         pos: createVector(0, 0),
         vel: createVector(0, 0)
     };
 }
 
-function lin_interpol(v1, v2, frac) {
+export function lin_interpol(v1, v2, frac) {
     //v1 é vetor inicial
     //v2 é vetor final
     //frac é % v2
@@ -21,16 +25,16 @@ function lin_interpol(v1, v2, frac) {
     }
 }
 
-function rand_pos(dist) {
+export function rand_pos(dist) {
     return createVector(lin_interpol(0 + dist, width - dist, Math.random()),
         lin_interpol(0 + dist, height - dist, Math.random()));
 }
 
-function rand_vel(max_mag) {
+export function rand_vel(max_mag) {
     return p5.Vector.random2D().mult(max_mag);
 }
 
-function eval_atom_init_cond(atom_cond, i, part_list, r) {
+export function eval_atom_init_cond(atom_cond, i, part_list, r) {
     let cond = {
         pos: null,
         vel: null
@@ -46,7 +50,7 @@ function eval_atom_init_cond(atom_cond, i, part_list, r) {
     return cond;
 }
 
-function eval_molec_init_cond(molec_cond, i) {
+export function eval_molec_init_cond(molec_cond, i) {
     let cond = {
         cm_pos: null,
         cm_vel: null,
@@ -68,13 +72,13 @@ function eval_molec_init_cond(molec_cond, i) {
     return cond;
 }
 
-function project(v, a) {
+export function project(v, a) {
     //projeta v em a
     //<v, a>/||a||^2 * a
     return p5.Vector.mult(a, v.dot(a) / (a.magSq()));
 }
 
-function Bhaskara(a, b, c) {
+export function Bhaskara(a, b, c) {
     //função que resolve equações de segundo grau
     if (b ** 2 - 4 * a * c < 0)
         return null;
@@ -82,13 +86,13 @@ function Bhaskara(a, b, c) {
         return [(-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a), (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a)];
 }
 
-function clone_atom(atom) {
+export function clone_atom(atom) {
     return new Atom(createVector(atom.pos.x, atom.pos.y), createVector(atom.velocity.x, atom.velocity.y),
         atom.radius, atom.m, atom.name);
 
 }
 
-function clone_molec(molec) {
+export function clone_molec(molec) {
     let atom1 = clone_atom(molec.atoms[0])
     let atom2 = clone_atom(molec.atoms[1]);
     let fake_molec = new Diatomic(atom1, atom2, molec.dist,
@@ -98,18 +102,9 @@ function clone_molec(molec) {
     return fake_molec;
 }
 
-function update_particles() {
-    for (let index of particles_rm.sort((x, y) => { return y - x; })) {
-        particles.splice(index, 1);
-    }
-    //adicionar novas partícular(produtos de reação, por exemplo)
-    particles = particles.concat(particles_add);
-    // reset
-    particles_add = [];
-    particles_rm = [];
-}
 
-function increase_temp(deltaE, particle) {
+
+export function increase_temp(deltaE, particle) {
     //deltaE é variação de energia por chamada da função
     if (particle instanceof Atom) {
         let curr_E = particle.get_energy() + deltaE;
@@ -126,7 +121,7 @@ function increase_temp(deltaE, particle) {
 
 }
 
-function get_system_energy(part_list) {
+export function get_system_energy(part_list) {
     let E = 0;
     for (let part of part_list)
         E += part.get_energy();

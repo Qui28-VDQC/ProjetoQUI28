@@ -1,7 +1,27 @@
+"use strict";
 /*código que pega todas as classes e funções definidas nos
 outros arquivos e de fato executa. Variáveis do começo devem
 ser alteradas dependendo do propósito da simulação*/
+//const PI = Math.PI;
+const CL2 = "XX";
+const DECOMPOSE_TIME = Date.now() + 5 * 10 ** 3;
+const BEGIN_TEMP_INCREASE = Date.now() + 0.01 * 10 ** 3;
+const INTERVAL_TEMP_INCREASE = 10 * 2 ** 3;
+const TOTAL_DELTA_E = 1000000;
+let decomposed = true;
 
+//import './Diatomic.js'
+import * as inc from './initial_conditions.js';
+import { Atom, check_collision, 
+    collide, static_collide_mono_mono } from './Atom.js';
+import {
+    Diatomic, check_collision_di_di, check_collision_di_mono, 
+    static_collide_di_di, static_collide_mono_di,
+    collide_di_di, collide_di_mono
+} from './Diatomic.js';
+
+import * as hpf from './helper_funcs.js';
+//import p5 from 'p5';
 
 let E0;
 
@@ -10,7 +30,7 @@ let particles = [];
 //lista de partículas a serem adicionadas a particles no fim do frame
 let particles_add = [];
 let particles_rm = []; // partículas a remover
-
+let dt = 0.0;
 
 
 function setup() {
@@ -18,36 +38,35 @@ function setup() {
 
     //inicializar partículas
     //átomo X
-    // let condition;
-    // for (let i = 0; i < atom_num.X; i++) {
-    //     condition = eval_atom_init_cond(atom_initial_conditions.X, i, particles, X.radius);
-    //     particles.push(atom_X(condition));
-    // }
-    // //átomo Y
-    // for (let i = 0; i < atom_num.Y; i++) {
-    //     condition = eval_atom_init_cond(atom_initial_conditions.Y, i, particles, Y.radius);
-    //     particles.push(atom_Y(condition));
-    // }
-    // //molécula XX
-    // for (let i = 0; i < molecule_num.XX; i++) {
-    //     condition = eval_molec_init_cond(molec_initial_conditions.XX, i);
-    //     particles.push(molec_XX(condition));
-    // }
-    // //molécula YY
-    // for (let i = 0; i < molecule_num.YY; i++) {
-    //     condition = eval_molec_init_cond(molec_initial_conditions.YY, i);
-    //     particles.push(molec_YY(condition));
-    // }
-    // //molécula XY
-    // for (let i = 0; i < molecule_num.XY; i++) {
-    //     condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
-    //     particles.push(molec_XY(condition));
-    // }
-    //let A = new Atom();
+    let condition;
+    for (let i = 0; i < inc.atom_num.X; i++) {
+        condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.X, i, particles, inc.X.radius);
+        particles.push(inc.atom_X(condition));
+    }
+    //átomo Y
+    for (let i = 0; i < inc.atom_num.Y; i++) {
+        condition = hpf.eval_atom_init_cond(inc.atom_initial_conditions.Y, i, particles, inc.Y.radius);
+        particles.push(inc.atom_Y(condition));
+    }
+    //molécula XX
+    for (let i = 0; i < inc.molecule_num.XX; i++) {
+        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XX, i);
+        particles.push(inc.molec_XX(condition));
+    }
+    //molécula YY
+    for (let i = 0; i < inc.molecule_num.YY; i++) {
+        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.YY, i);
+        particles.push(inc.molec_YY(condition));
+    }
+    //molécula XY
+    for (let i = 0; i < inc.molecule_num.XY; i++) {
+        condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XY, i);
+        particles.push(inc.molec_XY(condition));
+    }
 
 
 
-    E0 = get_system_energy(particles);
+    E0 = hpf.get_system_energy(particles);
 }
 
 
@@ -69,10 +88,10 @@ function draw() {
                     //se os átomos forem do tipo que reage
                     //esse código depende da ordenação de partículas!!!
                     const molec_name = a.name + b.name;
-                    if (E_table(molec_name)
-                        && test_mono_mono(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV)) {
+                    if (inc.E_table(molec_name)
+                        && test_mono_mono(a, b, inc.E_table(molec_name).BOND, inc.E_table(molec_name).ACTV)) {
                         //se tem energia suficiente pra reagir...
-                        let molec = react_mono_mono(a, b, E_table(molec_name).BOND, E_table(molec_name).ACTV);
+                        let molec = react_mono_mono(a, b, inc.E_table(molec_name).BOND, inc.E_table(molec_name).ACTV);
                         //há reação, excluir átomos
                         //console.log(molec.E_int);
                         particles_add.push(molec)
@@ -114,7 +133,7 @@ function draw() {
                     static_collide_mono_di(a, v, b);
                     //ver se há reação
                     //se são do tipo certo - basta que exista
-                    if (reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
+                    if (inc.reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
                         == a.atoms[v].name && check_energy(b, a, v)) {
 
                         let new_part = react_mono_di(b, a, v);
@@ -163,8 +182,8 @@ function draw() {
         }
         //faz o aumento de temperatura
         if (Date.now() > BEGIN_TEMP_INCREASE
-            && get_system_energy(particles) - E0 < TOTAL_DELTA_E) {
-            increase_temp(TOTAL_DELTA_E / INTERVAL_TEMP_INCREASE, a);
+            && hpf.get_system_energy(particles) - E0 < TOTAL_DELTA_E) {
+            hpf.increase_temp(TOTAL_DELTA_E / INTERVAL_TEMP_INCREASE, a);
         }
         a.update(dt);
         //desenhar
@@ -177,3 +196,18 @@ function draw() {
     update_particles();
 
 }
+
+function update_particles() {
+    for (let index of particles_rm.sort((x, y) => { return y - x; })) {
+        particles.splice(index, 1);
+    }
+    //adicionar novas partícular(produtos de reação, por exemplo)
+    particles = particles.concat(particles_add);
+    // reset
+    particles_add = [];
+    particles_rm = [];
+}
+
+//THIS IS A HACK!!
+window.setup = setup;
+window.draw = draw;
