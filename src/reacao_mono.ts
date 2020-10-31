@@ -1,7 +1,7 @@
-import { Atom } from './Atom.js'
+import { Atom } from './Atom'
 import { vec2, vec3 } from "gl-matrix"
-import { Diatomic } from './Diatomic.js'
-import { E_table } from './initial_conditions.js'
+import { Diatomic } from './Diatomic'
+import { E_table } from './initial_conditions'
 
 function test_mono_mono(atom1: Atom, atom2: Atom, E_bond: number, E_activation: number) {
   //r: vector that connects the atoms' centers
@@ -78,7 +78,7 @@ function react_mono_mono(atom1: Atom, atom2: Atom, E_bond: number, E_activation:
   let omega = L_a[2];
   
   return new Diatomic(atom1, atom2, atom1.radius + atom2.radius,
-    CM, V_CM, theta, omega, E_table(atom1.name+atom2.name).BOND, E_collision);
+    CM, V_CM, theta, omega, E_table[atom1.name+atom2.name].BOND, E_collision);
 }
 
 export {test_mono_mono, react_mono_mono}
