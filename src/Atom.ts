@@ -1,6 +1,6 @@
 //arquivo com a classe do átomo isolado, check de colisão entre átomos isolados
 //já incluso no run.html
-import { vec2 } from "gl-matrix"
+import { mat2, vec2 } from "gl-matrix"
 import { Diatomic } from "./Diatomic";
 import { Drawing } from './Drawing'
 
@@ -30,14 +30,15 @@ class Atom {
         //usado p checar reação
         this.name = name;
     }
-    get_energy() {
+    get_energy():number {
         return 0.5*this.m*vec2.sqrLen(this.velocity);
     }
-    draw(draw: Drawing) {
-        draw.circle(this.pos, 2 * this.radius);
+    draw(draw: Drawing):void {
+        draw.circle(this.pos, this.radius);
     }
-    update(dt: number) {
-        vec2.add(this.pos, this.pos, [dt * this.velocity[0], dt * this.velocity[1]]);
+    update(dt: number):void {
+        this.pos[0] += dt * this.velocity[0];
+        this.pos[1] += dt * this.velocity[1];
         // if (this.pos.x > width - this.radius) {
         //     this.velocity.x *= -1;
         //     //reflete o que ele ultrapassou
@@ -58,24 +59,58 @@ class Atom {
         // }
     }
 }
-
-function check_collision(atom1: Atom, atom2: Atom) {
-    //TODO: Rename this function
-    //Returns time until two atoms will collide
-    //checagem explicada no drive dos livros: COlisão?
-    //subtrai, sem alterar nenhum
+//Returns time until two atoms will collide
+function collision_time_mono_mono(atom1: Atom, atom2: Atom): number {
+    
+    //The displacement vector between the two atoms
     let r: vec2 = vec2.create();
     vec2.sub(r, atom1.pos, atom2.pos);
+    //The relative velocity
     let V_rel: vec2 = vec2.create();
     vec2.sub(V_rel, atom1.velocity, atom2.velocity);
     //let V_rel_dir: vec2 = vec2.create();
     //vec2.normalize(V_rel_dir, V_rel);
     let dotP = vec2.dot(V_rel, r);
     let sqrLen_V_rel = vec2.sqrLen(V_rel);
-    let beta = dotP / sqrLen_V_rel; //-p5.Vector.dot(V_rel, dpos) / V_rel.mag();
-    let deltaT = beta - Math.sqrt(dotP*dotP - sqrLen_V_rel*(vec2.dot(r, r) - (atom1.radius + atom2.radius)**2));
+     //-p5.Vector.dot(V_rel, dpos) / V_rel.mag();
+    let deltaT = -dotP - Math.sqrt(dotP*dotP - sqrLen_V_rel*(vec2.sqrLen(r) - (atom1.radius + atom2.radius)**2));
+    deltaT /= sqrLen_V_rel;
     //let deltaT = beta - sqrt(sq(atom1.radius + atom2.radius) - sq(dpos.mag()) + sq(beta));
+    console.log(deltaT);
     return deltaT;
+}
+
+function resolve_collision_mono_mono(atom1: Atom, atom2: Atom):void {
+    //r is the direction which connects the two atoms
+    let r: vec2 = vec2.create();
+    vec2.sub(r, atom1.pos, atom2.pos);
+    vec2.normalize(r, r);
+    let rot90deg = mat2.create();
+    mat2.fromRotation(rot90deg, 0.5*Math.PI);
+    //normal to r
+    let n = vec2.create();
+    vec2.transformMat2(n, r, rot90deg);
+
+    //n and r are orthonormal basis vectors
+    /* Calculate each velocity component
+    * we first calculate those parallel to n(perp to r)
+    * then those parallel to r */
+    //perpendicular to r
+    let v1_perp = vec2.dot(n, atom1.velocity);
+    let v2_perp = vec2.dot(n, atom2.velocity);
+    //parallel to r
+    let v1_par = (atom1.m - atom2.m)*vec2.dot(r, atom1.velocity) + 2*atom2.m*vec2.dot(r, atom2.velocity);
+    v1_par /= atom1.m + atom2.m;
+    let v2_par = (atom2.m - atom1.m)*vec2.dot(r, atom2.velocity) + 2*atom1.m*vec2.dot(r, atom1.velocity);
+    v2_par /= atom1.m + atom2.m;
+
+    //Setting the velocities after collision
+    let temp = vec2.create();
+    vec2.scale(temp, n, v1_perp);
+    vec2.scaleAndAdd(atom1.velocity, temp, r, v1_par);
+
+    vec2.scale(temp, n, v2_perp);
+    vec2.scaleAndAdd(atom2.velocity, temp, r, v2_par);
 }
 
 function collide(atom1: Atom | Diatomic, atom2: Atom | Diatomic) {
@@ -141,5 +176,5 @@ function static_collide_mono_mono(atom1: Atom, atom2: Atom) {
 }
 
 export {
-    check_collision, collide, static_collide_mono_mono, Atom
+    collision_time_mono_mono, collide, static_collide_mono_mono, Atom, resolve_collision_mono_mono
 }
