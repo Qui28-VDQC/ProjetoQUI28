@@ -7,8 +7,8 @@ ser alteradas dependendo do propósito da simulação*/
 
 //import './Diatomic.js'
 import * as inc from './initial_conditions';
-import { Atom, X, Y, check_collision, 
-    collide, static_collide_mono_mono } from './Atom';
+import { Atom, X, Y, collision_time_mono_mono, 
+    collide, static_collide_mono_mono, resolve_collision_mono_mono } from './Atom';
 import {
     Diatomic, check_collision_di_di, check_collision_di_mono, 
     static_collide_di_di, static_collide_mono_di,
@@ -81,142 +81,162 @@ function setup() {
     //     condition = hpf.eval_molec_init_cond(inc.molec_initial_conditions.XY, i);
     //     particles.push(inc.molec_XY(condition));
     // }
-    let a1: Atom = new Atom(random_pos(), random_vel(), X.radius, X.mass, "X");
+    let a1: Atom = new Atom(vec2.fromValues(10,10), random_vel(), X.radius, X.mass, "X");
     let a2: Atom = new Atom(random_pos(), random_vel(), Y.radius, Y.mass, "Y");
     particles.push(a1);
     particles.push(a2);
-    E0 = hpf.get_system_energy(particles);
+    //E0 = hpf.get_system_energy(particles);
+    console.log(particles);
 }
 
-let lastLoop: number = 0.0;
-let thisLoop: number = 0.1;
+
 
 function draw(_draw: Drawing) {
-    thisLoop = Date.now();
-    dt = thisLoop - lastLoop;
-    lastLoop = thisLoop;
-    for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+
+    for(let p of particles) {
+        p.draw(_draw);
+    }
+    
+    // for (let i = 0; i < particles.length; i++) {
+    //     for (let j = i + 1; j < particles.length; j++) {
+    //         let a = particles[i];
+    //         let b = particles[j];
+    //         if (a instanceof Atom && b instanceof Atom) {
+    //             if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
+    //                 static_collide_mono_mono(a, b);
+
+    //             let deltaT = check_collision(a, b);
+    //             //se houver encontro
+    //             if (deltaT > 0 && deltaT < dt) {
+    //                 let collided = true;
+    //                 //se os átomos forem do tipo que reage
+    //                 //esse código depende da ordenação de partículas!!!
+    //                 const molec_name = a.name + b.name;
+    //                 if (inc.E_table[molec_name]
+    //                     && test_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV)) {
+    //                     //se tem energia suficiente pra reagir...
+    //                     let molec = react_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV);
+    //                     //há reação, excluir átomos
+    //                     //console.log(molec.E_int);
+    //                     particles_add.push(molec)
+    //                     particles_rm.push(i, j);
+    //                     collided = false;
+    //                 }
+
+    //                 if (collided) {
+    //                     collide(particles[i], particles[j]);
+    //                 }
+    //             }
+    //             if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
+    //                 static_collide_mono_mono(a, b);
+    //         }
+    //         if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
+    //             //Colisão entre diatômicas
+    //             let v = check_collision_di_di(a, b, dt);
+    //             if (v != null) {
+    //                 static_collide_di_di(a, v[0], b, v[1]);
+    //                 collide_di_di(a, v[0], b, v[1]);
+    //             }
+    //             //checa sobreposição
+    //             for (let i_a = 0; i_a < 2; i_a++) {
+    //                 for (let i_b = 0; i_b < 2; i_b++) {
+    //                     if (vec2.dist(a.atoms[i_a], b.atoms[i_b].pos) < a.atoms[i_a].radius + b.atoms[i_b].radius)
+    //                         static_collide_di_di(a, i_a, b, i_b);
+    //                 }
+    //             }
+    //         }
+    //         if ((a instanceof Atom) && (b instanceof Diatomic)) {
+    //             let aux = a;
+    //             a = b;
+    //             b = aux;
+    //         }
+    //         if ((a instanceof Diatomic) && (b instanceof Atom)) {
+    //             //v é o índice do átomo que colidiu
+    //             let v = check_collision_di_mono(a, b, dt);
+    //             if (v != null) {
+    //                 static_collide_mono_di(a, v, b);
+    //                 //ver se há reação
+    //                 //se são do tipo certo - basta que exista
+    //                 if (inc.reacts[b.name][a.atoms[0].name + a.atoms[1].name]/*.type
+    //                     == a.atoms[v].name*/ && check_energy(b, a, v)) {
+
+    //                     let new_part = react_mono_di(b, a, v);
+
+    //                     particles_rm.push(i, j);
+    //                     particles_add.push(new_part.new_atom);
+    //                     particles_add.push(new_part.new_molec);
+    //                 } else
+    //                     collide_di_mono(a, v, b);
+    //                 for (let i_a = 0; i_a < 2; i_a++) {
+    //                     if (vec2.dist(b.pos, a.atoms[i_a].pos) < b.radius + a.atoms[i_a].radius)
+    //                         static_collide_mono_di(a, v, b);
+    //                 }
+    //             }
+    //         }
+    //         if ((a instanceof Atom) && (b instanceof Diatomic)) {
+    //             let aux = a;
+    //             a = b;
+    //             b = aux;
+    //         }
+    //         if ((a instanceof Diatomic) && (b instanceof Atom)) {
+    //             let v = check_collision_di_mono(a, b, dt);
+    //             if (v != null) {
+    //                 collide_di_mono(a, v, b);
+    //             }
+    //         }
+    //     }
+    // }
+    // //atualizar lista de partículas
+
+    // update_particles();
+
+    // let new_atoms;
+    // let a;
+    // for (let i = 0; i < particles.length; i++) {
+    //     a = particles[i];
+    //     //update da física
+    //     //faz a decomposição, se precisar
+    //     if (!decomposed && Date.now() > DECOMPOSE_TIME) {
+    //         if (a instanceof Diatomic && a.atoms[0].name + a.atoms[1].name == CL2) {
+    //             new_atoms = a.decompose();
+    //             particles_add.push(...new_atoms);
+    //             particles_rm.push(i);
+    //         }
+    //         decomposed = true;
+    //     }
+    //     //faz o aumento de temperatura
+    //     if (Date.now() > BEGIN_TEMP_INCREASE
+    //         && hpf.get_system_energy(particles) - E0 < TOTAL_DELTA_E) {
+    //         hpf.increase_temp(TOTAL_DELTA_E / INTERVAL_TEMP_INCREASE, a);
+    //     }
+    //     a.update(dt);
+    //     //desenhar
+    //     a.draw(_draw);
+    // }
+    // //console.log(E);
+
+    // //atualizar lista de partículas
+
+    // update_particles();
+}
+
+function update_simulation(dt: number) {
+    for(let i=0; i < particles.length; i++) {
+        for(let j=i+1; j < particles.length; j++) {
             let a = particles[i];
             let b = particles[j];
-            if (a instanceof Atom && b instanceof Atom) {
-                if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
-                    static_collide_mono_mono(a, b);
-
-                let deltaT = check_collision(a, b);
-                //se houver encontro
-                if (deltaT > 0 && deltaT < dt) {
-                    let collided = true;
-                    //se os átomos forem do tipo que reage
-                    //esse código depende da ordenação de partículas!!!
-                    const molec_name = a.name + b.name;
-                    if (inc.E_table[molec_name]
-                        && test_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV)) {
-                        //se tem energia suficiente pra reagir...
-                        let molec = react_mono_mono(a, b, inc.E_table[molec_name].BOND, inc.E_table[molec_name].ACTV);
-                        //há reação, excluir átomos
-                        //console.log(molec.E_int);
-                        particles_add.push(molec)
-                        particles_rm.push(i, j);
-                        collided = false;
-                    }
-
-                    if (collided) {
-                        collide(particles[i], particles[j]);
-                    }
-                }
-                if (vec2.dist(a.pos, b.pos) < a.radius + b.radius)
-                    static_collide_mono_mono(a, b);
-            }
-            if ((a instanceof Diatomic) && (b instanceof Diatomic)) {
-                //Colisão entre diatômicas
-                let v = check_collision_di_di(a, b, dt);
-                if (v != null) {
-                    static_collide_di_di(a, v[0], b, v[1]);
-                    collide_di_di(a, v[0], b, v[1]);
-                }
-                //checa sobreposição
-                for (let i_a = 0; i_a < 2; i_a++) {
-                    for (let i_b = 0; i_b < 2; i_b++) {
-                        if (vec2.dist(a.atoms[i_a], b.atoms[i_b].pos) < a.atoms[i_a].radius + b.atoms[i_b].radius)
-                            static_collide_di_di(a, i_a, b, i_b);
-                    }
-                }
-            }
-            if ((a instanceof Atom) && (b instanceof Diatomic)) {
-                let aux = a;
-                a = b;
-                b = aux;
-            }
-            if ((a instanceof Diatomic) && (b instanceof Atom)) {
-                //v é o índice do átomo que colidiu
-                let v = check_collision_di_mono(a, b, dt);
-                if (v != null) {
-                    static_collide_mono_di(a, v, b);
-                    //ver se há reação
-                    //se são do tipo certo - basta que exista
-                    if (inc.reacts[b.name][a.atoms[0].name + a.atoms[1].name]/*.type
-                        == a.atoms[v].name*/ && check_energy(b, a, v)) {
-
-                        let new_part = react_mono_di(b, a, v);
-
-                        particles_rm.push(i, j);
-                        particles_add.push(new_part.new_atom);
-                        particles_add.push(new_part.new_molec);
-                    } else
-                        collide_di_mono(a, v, b);
-                    for (let i_a = 0; i_a < 2; i_a++) {
-                        if (vec2.dist(b.pos, a.atoms[i_a].pos) < b.radius + a.atoms[i_a].radius)
-                            static_collide_mono_di(a, v, b);
-                    }
-                }
-            }
-            if ((a instanceof Atom) && (b instanceof Diatomic)) {
-                let aux = a;
-                a = b;
-                b = aux;
-            }
-            if ((a instanceof Diatomic) && (b instanceof Atom)) {
-                let v = check_collision_di_mono(a, b, dt);
-                if (v != null) {
-                    collide_di_mono(a, v, b);
+            if(a instanceof Atom && b instanceof Atom) {
+                let time = collision_time_mono_mono(a, b);
+                if(time >= 0 && time <= dt) {
+                    resolve_collision_mono_mono(a, b);
                 }
             }
         }
     }
-    //atualizar lista de partículas
 
-    update_particles();
-
-    let new_atoms;
-    let a;
-    for (let i = 0; i < particles.length; i++) {
-        a = particles[i];
-        //update da física
-        //faz a decomposição, se precisar
-        if (!decomposed && Date.now() > DECOMPOSE_TIME) {
-            if (a instanceof Diatomic && a.atoms[0].name + a.atoms[1].name == CL2) {
-                new_atoms = a.decompose();
-                particles_add.push(...new_atoms);
-                particles_rm.push(i);
-            }
-            decomposed = true;
-        }
-        //faz o aumento de temperatura
-        if (Date.now() > BEGIN_TEMP_INCREASE
-            && hpf.get_system_energy(particles) - E0 < TOTAL_DELTA_E) {
-            hpf.increase_temp(TOTAL_DELTA_E / INTERVAL_TEMP_INCREASE, a);
-        }
-        a.update(dt);
-        //desenhar
-        a.draw(_draw);
+    for(let i=0; i < particles.length; i++) {
+        particles[i].update(dt);
     }
-    //console.log(E);
-
-    //atualizar lista de partículas
-
-    update_particles();
-
 }
 
 function update_particles() {
@@ -234,4 +254,4 @@ function update_particles() {
 // window.setup = setup;
 // window.draw = draw;
 
-export {particles, setup, draw}
+export {setup, draw, update_simulation}
