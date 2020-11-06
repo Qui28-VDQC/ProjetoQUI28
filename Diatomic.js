@@ -30,7 +30,7 @@ class Diatomic {
         this.E_int = E_int;
         //colocar essas propriedades na função wall collide
         this.m_total = atom1.m + atom2.m;
-        this.I = atom1.m * this.d_CM[0] ** 2 + atom2.m * this.d_CM[1] ** 2
+        this.I = atom1.m * this.d_CM[0] ** 2 + atom2.m * this.d_CM[1] ** 2;
     }
     translate(dt) {
         this.cm_pos.add(p5.Vector.mult(this.cm_vel, dt));
@@ -149,9 +149,9 @@ class Diatomic {
         }
     }
     draw() {
-        let centers = this.atom_centers();
-        circle(centers[0].x, centers[0].y, 2 * this.atoms[0].radius);
-        circle(centers[1].x, centers[1].y, 2 * this.atoms[1].radius);
+        this.atom_centers();
+        this.atoms[0].draw();
+        this.atoms[1].draw();
     }
 }
 

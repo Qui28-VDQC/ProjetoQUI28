@@ -2,19 +2,25 @@
 //já incluso no run.html
 
 class Atom {
-    constructor(pos, velocity, radius, mass, name) {
+    constructor(pos, velocity, radius, mass, name, color, text_color) {
         this.pos = pos;
         this.velocity = velocity;
         this.radius = radius;
         this.m = mass;
         //usado p checar reação
         this.name = name;
+        this.color = color;
+        this.text_color = text_color;
     }
     get_energy() {
         return this.m*this.velocity.magSq()/2;
     }
-    draw(color) {
+    draw() {
+        fill(this.color);
         circle(this.pos.x, this.pos.y, 2 * this.radius);
+        fill(this.text_color);
+        textSize(this.radius/3);
+        text(this.name, this.pos.x, this.pos.y);
     }
     update(dt) {
         this.pos.add(p5.Vector.mult(this.velocity, dt))

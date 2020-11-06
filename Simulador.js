@@ -14,34 +14,35 @@ let particles_rm = []; // partículas a remover
 
 
 function setup() {
+    textAlign(CENTER, CENTER);
     createCanvas(600, 600);
 
     //inicializar partículas
-    //átomo X
+    //átomo H
     let condition;
-    for (let i = 0; i < atom_num.X; i++) {
-        condition = eval_atom_init_cond(atom_initial_conditions.X, i, particles, X.radius);
-        particles.push(atom_X(condition));
+    for (let i = 0; i < atom_num.H; i++) {
+        condition = eval_atom_init_cond(atom_initial_conditions.H, i, particles, H.radius);
+        particles.push(atom_H(condition));
     }
-    //átomo Y
-    for (let i = 0; i < atom_num.Y; i++) {
-        condition = eval_atom_init_cond(atom_initial_conditions.Y, i, particles, Y.radius);
-        particles.push(atom_Y(condition));
+    //átomo Cl
+    for (let i = 0; i < atom_num.Cl; i++) {
+        condition = eval_atom_init_cond(atom_initial_conditions.Cl, i, particles, Cl.radius);
+        particles.push(atom_Cl(condition));
     }
-    //molécula XX
-    for (let i = 0; i < molecule_num.XX; i++) {
-        condition = eval_molec_init_cond(molec_initial_conditions.XX, i);
-        particles.push(molec_XX(condition));
+    //molécula HH
+    for (let i = 0; i < molecule_num.HH; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.HH, i);
+        particles.push(molec_HH(condition));
     }
-    //molécula YY
-    for (let i = 0; i < molecule_num.YY; i++) {
-        condition = eval_molec_init_cond(molec_initial_conditions.YY, i);
-        particles.push(molec_YY(condition));
+    //molécula ClCl
+    for (let i = 0; i < molecule_num.ClCl; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.ClCl, i);
+        particles.push(molec_ClCl(condition));
     }
-    //molécula XY
-    for (let i = 0; i < molecule_num.XY; i++) {
-        condition = eval_molec_init_cond(molec_initial_conditions.XY, i);
-        particles.push(molec_XY(condition));
+    //molécula HCl
+    for (let i = 0; i < molecule_num.HCl; i++) {
+        condition = eval_molec_init_cond(molec_initial_conditions.HCl, i);
+        particles.push(molec_HCl(condition));
     }
     E0 = get_system_energy(particles);
 }

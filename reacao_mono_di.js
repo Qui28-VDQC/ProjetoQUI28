@@ -48,7 +48,7 @@ function inellastic_collision(atom, molec, i, n) {
     //velocidade do centro de massa entre o atomo isolado colidindo e o atomo i da molecula
     let new_vel = p5.Vector.add(p5.Vector.mult(molec.atoms[i].velocity, molec.atoms[i].m),
                                 p5.Vector.mult(atom.velocity, atom.m)).div(molec.atoms[i].m + atom.m);
-    let new_ang = (molec.atoms[i].name == "X") ? p5.Vector.sub(molec.atoms[i].pos,
+    let new_ang = (molec.atoms[i].name == "H") ? p5.Vector.sub(molec.atoms[i].pos,
         atom.pos).heading() : p5.Vector.sub(atom.pos,
             molec.atoms[i].pos).heading();
     //em relação ao CM: w = r x v /|r|^2
