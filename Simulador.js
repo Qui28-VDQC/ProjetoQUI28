@@ -15,7 +15,7 @@ let particles_rm = []; // partículas a remover
 
 function setup() {
     textAlign(CENTER, CENTER);
-    createCanvas(600, 600);
+    createCanvas(1200, 600);
 
     //inicializar partículas
     //átomo H
@@ -88,14 +88,16 @@ function draw() {
                 //Colisão entre diatômicas
                 v = check_collision_di_di(a, b, dt);
                 if (v != null) {
-                    static_collide_di_di(a, v[0], b, v[1]);
                     collide_di_di(a, v[0], b, v[1]);
                 }
                 //checa sobreposição
                 for (let i_a = 0; i_a < 2; i_a++) {
                     for (let i_b = 0; i_b < 2; i_b++) {
                         if (a.atoms[i_a].pos.dist(b.atoms[i_b].pos) < a.atoms[i_a].radius + b.atoms[i_b].radius)
+                        {
                             static_collide_di_di(a, i_a, b, i_b);
+                        }
+                            
                     }
                 }
             }
@@ -108,12 +110,11 @@ function draw() {
                 //v é o índice do átomo que colidiu
                 let v = check_collision_di_mono(a, b, dt);
                 if (v != null) {
-                    static_collide_mono_di(a, v, b);
                     //ver se há reação
                     //se são do tipo certo - basta que exista
                     if (reacts[b.name][a.atoms[0].name + a.atoms[1].name].type
                         == a.atoms[v].name && check_energy(b, a, v)) {
-
+                        
                         let new_part = react_mono_di(b, a, v);
 
                         particles_rm.push(i, j);
@@ -123,19 +124,8 @@ function draw() {
                         collide_di_mono(a, v, b);
                     for (let i_a = 0; i_a < 2; i_a++) {
                         if (b.pos.dist(a.atoms[i_a].pos) < b.radius + a.atoms[i_a].radius)
-                            static_collide_mono_di(a, v, b);
+                            static_collide_mono_di(a, i_a, b);
                     }
-                }
-            }
-            if ((a instanceof Atom) && (b instanceof Diatomic)) {
-                let aux = a;
-                a = b;
-                b = aux;
-            }
-            if ((a instanceof Diatomic) && (b instanceof Atom)) {
-                let v = check_collision_di_mono(a, b, dt);
-                if (v != null) {
-                    collide_di_mono(a, v, b);
                 }
             }
         }
@@ -150,13 +140,15 @@ function draw() {
         a = particles[i];
         //update da física
         //faz a decomposição, se precisar
-        if (!decomposed && Date.now() > DECOMPOSE_TIME) {
+        decomposed = false;
+        if (!decomposed && (Date.now() - last_decomposed) > DECOMPOSE_INTERVAL) {
             if (a instanceof Diatomic && a.atoms[0].name + a.atoms[1].name == CL2) {
                 new_atoms = a.decompose();
                 particles_add.push(...new_atoms);
                 particles_rm.push(i);
+                decomposed = true;
+                last_decomposed = Date.now();
             }
-            decomposed = true;
         }
         //faz o aumento de temperatura
         if (Date.now() > BEGIN_TEMP_INCREASE
@@ -167,7 +159,6 @@ function draw() {
         //desenhar
         a.draw();
     }
-    //console.log(E);
 
     //atualizar lista de partículas
 

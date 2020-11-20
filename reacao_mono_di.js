@@ -2,18 +2,18 @@ function react_mono_di(atom, molec, i) {
     //faz a colisão ineslástica entre o átomo e a molécula,
     //sem criar o novo átomo e a nova molécula, nem incluir o deltaH
     //i é o indice do atomo da molécula que colidiu
-    console.log(atom.get_energy() + molec.get_energy());
+    //console.log(atom.get_energy() + molec.get_energy());
     let n = p5.Vector.sub(atom.pos, molec.atoms[i].pos);
     n.normalize();
     //há reação
     //INCLUIR VARIAÇÃO DE ENERGIA DA COLISÃO INELÁSTICA - E_int
     let new_molec_cond = inellastic_collision(atom, molec, i, n);
-    console.log(atom.get_energy() + molec.get_energy());
+    //console.log(atom.get_energy() + molec.get_energy());
     let new_particles = create_new(atom, molec, i, new_molec_cond);
-    console.log(new_particles.new_atom.get_energy() +new_particles.new_molec.get_energy());
+    //console.log(new_particles.new_atom.get_energy() +new_particles.new_molec.get_energy());
     //"colisão" superelástica p incluir o deltaH - age sobre as novas partículas
     deltaH(new_particles.new_atom, new_particles.new_molec, i, n, molec);
-    console.log(new_particles.new_atom.get_energy() +new_particles.new_molec.get_energy());
+    //console.log(new_particles.new_atom.get_energy() +new_particles.new_molec.get_energy());
     return new_particles;
 }
 
@@ -135,12 +135,20 @@ function check_energy(atom, molec, i) {
     let E0 = cloned_atom.m*cloned_atom.velocity.magSq()/2 
             + cloned_molec.m_total*cloned_molec.cm_vel.magSq()/2 
             + cloned_molec.I*cloned_molec.omega.magSq()/2;
-    inellastic_collision(cloned_atom, cloned_molec, i, n);
+    let new_molec_cond = inellastic_collision(cloned_atom, cloned_molec, i, n);
 
     let Ef = cloned_atom.m*cloned_atom.velocity.magSq()/2 
             + cloned_molec.m_total*cloned_molec.cm_vel.magSq()/2 
             + cloned_molec.I*cloned_molec.omega.magSq()/2;
     //consulta à tabela (reacts)
     //E_int armazena a energia perdida na colisão inelástica
-    return (cloned_molec.E_int > reacts[cloned_atom.name][cloned_molec.atoms[0].name+cloned_molec.atoms[1].name].ACTV);
+    //checa se a molécula tem energia suficiente pra superar a energia de ativação
+    let r = (cloned_molec.E_int > reacts[cloned_atom.name][cloned_molec.atoms[0].name+cloned_molec.atoms[1].name].ACTV);
+    //checar, caso endotérmico, simula uma reação e vê se dá um erro Uncaught TypeError
+    let new_particles = create_new(cloned_atom, cloned_molec, i, new_molec_cond);
+    try {
+        deltaH(new_particles.new_atom, new_particles.new_molec, i, n, molec);
+    }
+    catch {r = false;}
+    return r;
 }

@@ -254,7 +254,6 @@ function static_collide_di_di(molec1, i, molec2, j) {
     molec2.cm_pos.add(n.mult(overlap));
 }
 
-
 function check_collision_di_mono(molec, atom, dt) {
     let fake_molec = clone_molec(molec);
     let fake_atom = clone_atom(atom);
@@ -318,7 +317,7 @@ function collide_di_mono(molec, i, atom) {
 
 function static_collide_di_di(molec1, i, molec2, j) {
     molec1.atom_centers();
-    molec2.atom_centers()
+    molec2.atom_centers();
     let n = p5.Vector.sub(molec2.atoms[j].pos, molec1.atoms[i].pos);
     let overlap = molec1.atoms[i].radius + molec2.atoms[j].radius - n.mag();
     n.normalize();

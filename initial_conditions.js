@@ -1,14 +1,17 @@
 const PI = 3.141592653589793;
 const CL2 = "ClCl";
-const DECOMPOSE_TIME = Date.now() + 5 * 10 ** 3;
+const BEGIN_TIME = Date.now()
+const DECOMPOSE_INTERVAL = 3 * 10 ** 3;
+let last_decomposed = BEGIN_TIME;
+let decomposed = false;
 const BEGIN_TEMP_INCREASE = Date.now() + 0.01 * 10 ** 3;
 const INTERVAL_TEMP_INCREASE = 10 * 2 ** 3;
 const TOTAL_DELTA_E = 1000000;
-let decomposed = true;
+
 //parâmetros de cada átomo
 const H = {
-    radius: 100,
-    mass: 40,
+    radius: 5,
+    mass: 1,
     //RGB
     color: [100, 100, 100],
     text_color: [255, 255, 255]
@@ -16,15 +19,15 @@ const H = {
 
 const Cl = {
     radius: 50,
-    mass: 10,
+    mass: 2,
     color: [0, 255, 0],
     text_color: [255, 255, 255]
 }
 
 //quantidades de cada partícula
 let atom_num = {
-    H: 0,
-    Cl: 2
+    H: 250,
+    Cl: 0
 }
 
 const atom_H = (cond) => { return new Atom(cond.pos, cond.vel, H.radius, H.mass, "H", H.color, H.text_color) };
@@ -43,7 +46,7 @@ const atom_initial_conditions = {
 }
 
 let molecule_num = {
-    HH: 1,
+    HH: 0,
     ClCl: 0,
     HCl: 0
 }
@@ -105,7 +108,7 @@ const reacts = {
             //tipo do átomo que vai ser liberado (checar)
             type: "H",
             //energia de ativação da reação
-            ACTV: 100000
+            ACTV: 10000
         },
         HCl: false,
         ClCl: false
